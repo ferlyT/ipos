@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Laporan Audit Finansial iPos 4.0 (i4_barunatrial)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Utility & Scrollbar styling */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Touch optimization */
+    @media (pointer: coarse) {
+      button, a, input, select {
+        min-height: 38px;
+      }
+    }
+
+    @media print {
+      body { background: #ffffff !important; color: #000000 !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      .page-break { page-break-after: always; }
+      .card-print { border: 1px solid #ccc !important; box-shadow: none !important; color: #000 !important; background: #fff !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased font-sans min-h-screen selection:bg-indigo-600 selection:text-white pb-12">
+
+  <!-- TOP APP BAR / HEADER (MOBILE RESPONSIVE) -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <!-- Brand & DB Info -->
+      <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-xs sm:text-base font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
+            <span>Audit iPos 4.0</span>
+            <span class="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-mono font-medium truncate">
+              i4_barunatrial
+            </span>
+          </h1>
+          <p class="text-[10px] sm:text-xs text-slate-400 truncate hidden xs:block">Pemeriksaan Substantif 100% Populasi Transaksi</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-1.5 sm:gap-2 no-print shrink-0">
+        <button onclick="window.print()" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          <span class="hidden sm:inline">Cetak / PDF</span>
+        </button>
+        <button onclick="exportJSON()" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 transition shadow-sm">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          <span class="hidden sm:inline">JSON</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
+
+    <!-- AUDITOR EXECUTIVE OPINION BANNER -->
+    <div class="rounded-xl sm:rounded-2xl p-4 sm:p-6 border bg-rose-950/30 border-rose-800/50 text-rose-200 relative overflow-hidden card-print">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="space-y-1.5">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[10px] sm:text-xs uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">
+              Opini Auditor
+            </span>
+            <span class="text-[11px] sm:text-xs text-slate-400">Audit: Jumat, 30 Oktober 2026 pukul 13.50.06</span>
+          </div>
+          <h2 class="text-lg sm:text-2xl font-black tracking-tight text-white leading-snug">TIDAK WAJAR / MENYIMPANG MATERIAL (ADVERSE OPINION)</h2>
+          <p class="text-xs sm:text-sm text-slate-300 max-w-3xl leading-relaxed">Laporan keuangan tidak mencerminkan posisi fisik dan operasional yang sebenarnya akibat saldo kas/bank bernilai negatif lebih dari Rp 900 Juta, ketidaksinkronan buku besar vs buku pembantu, dan flag kas/bank yang salah pada akun non-likuid.</p>
+        </div>
+        <div class="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 bg-slate-900/80 p-3 sm:p-4 rounded-xl border border-slate-800 shrink-0">
+          <div class="text-[11px] sm:text-xs text-slate-400">Total Anomali</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-2">
+            47
+            <span class="text-[10px] sm:text-xs font-normal text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">35 Critical</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIGH-LEVEL FINANCIAL METRIC CARDS (RESPONSIVE GRID) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <!-- 1. Volume Transaksi Diperiksa -->
+      <div class="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-sm card-print">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Populasi Transaksi</span>
+          <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">100% Scan</span>
+        </div>
+        <div class="mt-2 sm:mt-3 text-lg sm:text-xl font-bold text-white tracking-tight break-words">
+          Rp 35.115.637.006
+        </div>
+        <div class="mt-1 text-[11px] sm:text-xs text-slate-400 flex flex-wrap items-center gap-1.5">
+          <span class="text-emerald-400 font-medium">5.553 Jual</span>
+          <span>•</span>
+          <span class="text-blue-400 font-medium">3.093 Beli</span>
+        </div>
+      </div>
+
+      <!-- 2. Saldo Kas Minus -->
+      <div class="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-sm card-print">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Saldo Kas / Bank Minus</span>
+          <span class="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 font-mono text-[10px]">High Risk</span>
+        </div>
+        <div class="mt-2 sm:mt-3 text-lg sm:text-xl font-bold text-rose-400 tracking-tight break-words">
+          Rp 1.143.514.430
+        </div>
+        <div class="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">
+          Buku besar kas/bank bernilai negatif
+        </div>
+      </div>
+
+      <!-- 3. Kerugian Penjualan di Bawah HPP -->
+      <div class="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-sm card-print">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Margin Jual Rugi (di bawah HPP)</span>
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono text-[10px]">Profit Drain</span>
+        </div>
+        <div class="mt-2 sm:mt-3 text-lg sm:text-xl font-bold text-amber-400 tracking-tight break-words">
+          Rp 226.631.529
+        </div>
+        <div class="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">
+          Dari 1.293 transaksi jual rugi
+        </div>
+      </div>
+
+      <!-- 4. Faktur Beli Belum Terjurnal -->
+      <div class="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-xl shadow-sm card-print">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Beli Belum Terjurnal</span>
+          <span class="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 font-mono text-[10px]">0 Faktur</span>
+        </div>
+        <div class="mt-2 sm:mt-3 text-lg sm:text-xl font-bold text-slate-200 tracking-tight break-words">
+          Rp 0
+        </div>
+        <div class="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">
+          Termasuk Saldo Awal Persediaan Rp 3,95 M
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE TABS & SEARCH CONTROLS (MOBILE-OPTIMIZED) -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm space-y-3 sm:space-y-4 no-print">
+      <!-- HORIZONTAL SCROLLABLE TABS (Touch Friendly) -->
+      <div class="overflow-x-auto no-scrollbar -mx-1 px-1">
+        <div class="flex items-center space-x-1.5 sm:space-x-2 border-b border-slate-800 pb-2.5 min-w-max" id="tabContainer">
+          <button onclick="switchTab('ALL')" id="tab_ALL" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5">
+            Semua <span class="px-1.5 py-0.2 rounded-full bg-indigo-950/60 text-[10px]">47</span>
+          </button>
+          <button onclick="switchTab('SALES')" id="tab_SALES" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-1.5">
+            Penjualan <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">22</span>
+          </button>
+          <button onclick="switchTab('PURCHASE')" id="tab_PURCHASE" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-1.5">
+            Pembelian <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">5</span>
+          </button>
+          <button onclick="switchTab('CASH')" id="tab_CASH" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-1.5">
+            Kas & Bank <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">14</span>
+          </button>
+          <button onclick="switchTab('INVENTORY')" id="tab_INVENTORY" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-1.5">
+            Persediaan <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">4</span>
+          </button>
+          <button onclick="switchTab('SUBLEDGER')" id="tab_SUBLEDGER" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-1.5">
+            Hutang/Piutang <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">2</span>
+          </button>
+          <button onclick="switchTab('JOURNAL')" id="tab_JOURNAL" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-1.5">
+            Jurnal & COA <span class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
+          </button>
+          <button onclick="switchTab('REMEDIATION')" id="tab_REMEDIATION" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:text-amber-300 hover:bg-slate-800 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Panduan Solusi
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTER & SEARCH BAR -->
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Cari transaksi, kode akun, nama barang..."
+                 class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition">
+        </div>
+
+        <!-- Severity & View Mode Controls -->
+        <div class="flex flex-wrap items-center justify-between sm:justify-start gap-2">
+          <!-- Severity Pills -->
+          <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+            <button onclick="setSeverityFilter('ALL')" id="sev_ALL" class="sev-btn px-2.5 py-1 rounded text-xs font-medium bg-slate-800 text-slate-200 border border-slate-700">Semua</button>
+            <button onclick="setSeverityFilter('CRITICAL')" id="sev_CRITICAL" class="sev-btn px-2.5 py-1 rounded text-xs font-medium bg-rose-500/10 text-rose-400 border border-transparent hover:border-rose-500/30">Crit (35)</button>
+            <button onclick="setSeverityFilter('WARNING')" id="sev_WARNING" class="sev-btn px-2.5 py-1 rounded text-xs font-medium bg-amber-500/10 text-amber-400 border border-transparent hover:border-amber-500/30">Warn (10)</button>
+            <button onclick="setSeverityFilter('INFO')" id="sev_INFO" class="sev-btn px-2.5 py-1 rounded text-xs font-medium bg-blue-500/10 text-blue-400 border border-transparent hover:border-blue-500/30">Info (2)</button>
+          </div>
+
+          <!-- View Mode Toggle (Card vs Table) -->
+          <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 shrink-0">
+            <button onclick="setViewMode('card')" id="btnViewCard" class="px-2 py-1 rounded text-[11px] font-medium transition flex items-center gap-1 bg-indigo-600 text-white" title="Tampilan Kartu (Optimal Mobile)">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              <span>Kartu</span>
+            </button>
+            <button onclick="setViewMode('table')" id="btnViewTable" class="px-2 py-1 rounded text-[11px] font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1" title="Tampilan Tabel (Desktop)">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span>Tabel</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANOMALY FINDINGS CONTAINER -->
+    <div id="findingsContainer" class="space-y-3 sm:space-y-4">
+      <div class="flex items-center justify-between text-xs text-slate-400 px-1">
+        <div>Menampilkan <span id="displayedCount" class="font-bold text-white">47</span> temuan audit</div>
+        <div class="text-[11px] text-slate-500 hidden sm:block">Periksa rekomendasi tindakan pada masing-masing temuan</div>
+      </div>
+
+      <!-- 1. CARD VIEW (MOBILE RESPONSIVE DEFAULT) -->
+      <div id="findingsCardView" class="space-y-3">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- 2. TABLE VIEW (DESKTOP) -->
+      <div id="findingsTableView" class="hidden bg-slate-900/60 border border-slate-800 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm card-print">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-950/80 text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4 w-12 text-center">No</th>
+                <th class="py-3 px-4 w-28">Severity</th>
+                <th class="py-3 px-4 w-28">Kategori</th>
+                <th class="py-3 px-4">Judul Temuan & Uraian Masalah</th>
+                <th class="py-3 px-4 w-40">Referensi</th>
+                <th class="py-3 px-4 w-1/3">Rekomendasi Tindakan Koreksi</th>
+              </tr>
+            </thead>
+            <tbody id="findingsTableBody" class="divide-y divide-slate-800/60 font-normal">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REMEDIATION GUIDE VIEW (HIDDEN BY DEFAULT) -->
+    <div id="remediationView" class="hidden space-y-4 sm:space-y-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 card-print">
+        <h3 class="text-base sm:text-lg font-bold text-white mb-1.5 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Protokol Tindakan Perbaikan Data (Auditor Action Plan)
+        </h3>
+        <p class="text-xs text-slate-400 mb-4 sm:mb-6">Langkah perbaikan sistematis untuk menyehatkan kembali Laporan Keuangan database iPos 4.0:</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
+          <!-- Step 1: Koreksi Flag Kas/Bank -->
+          <div class="border border-slate-800 rounded-xl p-3.5 sm:p-4 bg-slate-950/50">
+            <div class="flex items-center gap-2 text-rose-400 font-bold text-xs sm:text-sm mb-1.5">
+              <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs shrink-0">1</span>
+              Hapus Centang Kas/Bank pada Akun Non-Likuid
+            </div>
+            <p class="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
+              Buka menu <b>Akuntansi &gt; Data Perkiraan</b>. Temukan akun <code>3-2000 LABA DITAHAN</code>, <code>3-3000 LABA TAHUN BERJALAN</code>, <code>5-1100 HPP</code>, <code>1-1301 PERSEDIAAN</code>. Hapus centang <i>Kas/Bank</i> agar Laporan Arus Kas kembali murni.
+            </p>
+          </div>
+
+          <!-- Step 2: Rekonsiliasi Bank BCA Minus -->
+          <div class="border border-slate-800 rounded-xl p-3.5 sm:p-4 bg-slate-950/50">
+            <div class="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm mb-1.5">
+              <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs shrink-0">2</span>
+              Audit Rekening Koran BCA (Saldo Minus Rp 928 Juta)
+            </div>
+            <p class="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
+              Cek mutasi rekening koran fisik vs buku kas. Pastikan setoran modal awal, hasil penjualan transfer, atau pinjaman modal bank sudah diinput di modul <b>Kas Masuk</b> atau <b>Saldo Awal Perkiraan</b>.
+            </p>
+          </div>
+
+          <!-- Step 3: Posting Ulang Faktur Beli & Jual -->
+          <div class="border border-slate-800 rounded-xl p-3.5 sm:p-4 bg-slate-950/50">
+            <div class="flex items-center gap-2 text-indigo-400 font-bold text-xs sm:text-sm mb-1.5">
+              <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs shrink-0">3</span>
+              Jalankan Proses Posting / Jurnal Ulang
+            </div>
+            <p class="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
+              Pada menu <b>Akuntansi &gt; Proses Data &gt; Proses Jurnal Transaksi</b>, jalankan jurnal ulang untuk modul Pembelian dan Penjualan guna menyerap faktur-faktur yang nilainya sempat diedit setelah posting awal.
+            </p>
+          </div>
+
+          <!-- Step 4: Pasang Batasan Diskon Kasir -->
+          <div class="border border-slate-800 rounded-xl p-3.5 sm:p-4 bg-slate-950/50">
+            <div class="flex items-center gap-2 text-blue-400 font-bold text-xs sm:text-sm mb-1.5">
+              <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs shrink-0">4</span>
+              Cegah Transaksi Penjualan di Bawah HPP
+            </div>
+            <p class="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
+              Atur hak akses kasir di menu <b>Pengaturan &gt; Kelompok Akses User</b>. Nonaktifkan izin <i>Jual di Bawah Modal</i> agar kasir tidak dapat menjual barang di bawah harga pokok FIFO.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- DATA & SCRIPTS -->
+  <script>
+    const auditData = {"timestamp":"2026-10-30T06:50:06.773Z","database":"i4_barunatrial","totalAnomalies":47,"criticalCount":35,"warningCount":10,"infoCount":2,"categoryStats":{"SALES":22,"PURCHASE":5,"CASH":14,"INVENTORY":4,"SUBLEDGER":2,"JOURNAL":0,"DATE":0,"SYNC":0},"metrics":{"totalSalesCount":5553,"totalSalesAmount":20515203818.49,"totalPurchaseCount":3093,"totalPurchaseAmount":14600433187.64,"totalJournalCount":44036,"totalItemCount":3109,"unjournaledSalesCount":0,"unjournaledSalesAmount":0,"unjournaledPurchaseCount":0,"unjournaledPurchaseAmount":0,"salesBelowCostCount":1293,"salesBelowCostLoss":226631529.3,"negativeCashAmount":1143514430.45},"items":[{"id":"SALES_EMPTY_LEGACY_BATCH","code":"SALES_EMPTY_DETAIL","category":"SALES","severity":"INFO","title":"113 Faktur Penjualan Kosong / Saldo Awal Terbengkalai","description":"Ditemukan 113 faktur penjualan dengan total Rp 0 dan tanpa detail item barang (sebagian besar transaksi historis/setup awal sebelum 2022). Tidak mempengaruhi nominal uang di neraca namun mengotori nomor urut faktur.","detectedValue":113,"remediation":"Lakukan pembersihan data historis atau biarkan jika diperlukan untuk kontinuitas nomor faktur terdahulu."},{"id":"SALES_LOSS_0044/JL/UTM/0122_TANK HO LONG 160 S (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 160 S (0044/JL/UTM/0122)","description":"Item 'TANK HO LONG 160 S' dijual seharga Rp 18.700.000 padahal HPP tercatat Rp 23.357.900 (Selisih minus: Rp 4.657.900/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 4.657.900.","referenceKey":"0044/JL/UTM/0122","detectedValue":{"harga_jual":18700000,"hpp":23357900,"qty":1},"discrepancy":4657900,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_0167/JL/UTM/0322_TANK HO LONG 160 L (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 160 L (0167/JL/UTM/0322)","description":"Item 'TANK HO LONG 160 L' dijual seharga Rp 21.000.000 padahal HPP tercatat Rp 22.550.000 (Selisih minus: Rp 1.550.000/satuan). Jumlah terjual: 3. Total potensi kerugian kotor pada baris ini: Rp 4.650.000.","referenceKey":"0167/JL/UTM/0322","detectedValue":{"harga_jual":21000000,"hpp":22550000,"qty":3},"discrepancy":4650000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_0015/JL/UTM/0122_TANK HO LONG 160 S (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 160 S (0015/JL/UTM/0122)","description":"Item 'TANK HO LONG 160 S' dijual seharga Rp 19.000.000 padahal HPP tercatat Rp 23.357.900 (Selisih minus: Rp 4.357.900/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 4.357.900.","referenceKey":"0015/JL/UTM/0122","detectedValue":{"harga_jual":19000000,"hpp":23357900,"qty":1},"discrepancy":4357900,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_1917/JL/UTM/1023_ISI TANK 190 L","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: ISI TANK 190 L (1917/JL/UTM/1023)","description":"Item 'ISI TANK 190 L' dijual seharga Rp 14.300.000 padahal HPP tercatat Rp 18.150.000 (Selisih minus: Rp 3.850.000/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 3.850.000.","referenceKey":"1917/JL/UTM/1023","detectedValue":{"harga_jual":14300000,"hpp":18150000,"qty":1},"discrepancy":3850000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_4169/JL/UTM/0925_YANMAR TF300  H","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: YANMAR TF300H (4169/JL/UTM/0925)","description":"Item 'YANMAR TF300H' dijual seharga Rp 43.738.738 padahal HPP tercatat Rp 47.500.000 (Selisih minus: Rp 3.761.262/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 3.761.262.","referenceKey":"4169/JL/UTM/0925","detectedValue":{"harga_jual":43738738,"hpp":47500000,"qty":1},"discrepancy":3761262,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_2425/JL/UTM/0524_TANK HO LONG 160 S (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 160 S (2425/JL/UTM/0524)","description":"Item 'TANK HO LONG 160 S' dijual seharga Rp 19.800.000 padahal HPP tercatat Rp 23.357.900 (Selisih minus: Rp 3.557.900/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 3.557.900.","referenceKey":"2425/JL/UTM/0524","detectedValue":{"harga_jual":19800000,"hpp":23357900,"qty":1},"discrepancy":3557900,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_1439/JL/UTM/0623_TANK HO LONG 160 S (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 160 S (1439/JL/UTM/0623)","description":"Item 'TANK HO LONG 160 S' dijual seharga Rp 20.000.000 padahal HPP tercatat Rp 23.357.900 (Selisih minus: Rp 3.357.900/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 3.357.900.","referenceKey":"1439/JL/UTM/0623","detectedValue":{"harga_jual":20000000,"hpp":23357900,"qty":1},"discrepancy":3357900,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_1391/JL/UTM/0523_TANK HO LONG 160 S (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 160 S (1391/JL/UTM/0523)","description":"Item 'TANK HO LONG 160 S' dijual seharga Rp 21.000.000 padahal HPP tercatat Rp 23.357.900 (Selisih minus: Rp 2.357.900/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 2.357.900.","referenceKey":"1391/JL/UTM/0523","detectedValue":{"harga_jual":21000000,"hpp":23357900,"qty":1},"discrepancy":2357900,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_2327/JL/UTM/0424_CLUTCH DISC SET D300(KAMPAS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: CLUTCH DISC SET D300(KAMPAS) (2327/JL/UTM/0424)","description":"Item 'CLUTCH DISC SET D300(KAMPAS)' dijual seharga Rp 1.370.000 padahal HPP tercatat Rp 1.750.000 (Selisih minus: Rp 380.000/satuan). Jumlah terjual: 5. Total potensi kerugian kotor pada baris ini: Rp 1.900.000.","referenceKey":"2327/JL/UTM/0424","detectedValue":{"harga_jual":1370000,"hpp":1750000,"qty":5},"discrepancy":1900000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_1916/JL/UTM/1023_LINER F/B EK100 NPR","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: LINER EK100 F/W NPR (1916/JL/UTM/1023)","description":"Item 'LINER EK100 F/W NPR' dijual seharga Rp 950.000 padahal HPP tercatat Rp 1.100.000 (Selisih minus: Rp 150.000/satuan). Jumlah terjual: 12. Total potensi kerugian kotor pada baris ini: Rp 1.800.000.","referenceKey":"1916/JL/UTM/1023","detectedValue":{"harga_jual":950000,"hpp":1100000,"qty":12},"discrepancy":1800000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_0015/JL/UTM/0122_TANK HO LONG 190L (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 190L (0015/JL/UTM/0122)","description":"Item 'TANK HO LONG 190L' dijual seharga Rp 29.000.000 padahal HPP tercatat Rp 30.800.000 (Selisih minus: Rp 1.800.000/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.800.000.","referenceKey":"0015/JL/UTM/0122","detectedValue":{"harga_jual":29000000,"hpp":30800000,"qty":1},"discrepancy":1800000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_0239/JL/UTM/0322_TANK HO LONG 190L (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 190L (0239/JL/UTM/0322)","description":"Item 'TANK HO LONG 190L' dijual seharga Rp 29.000.000 padahal HPP tercatat Rp 30.800.000 (Selisih minus: Rp 1.800.000/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.800.000.","referenceKey":"0239/JL/UTM/0322","detectedValue":{"harga_jual":29000000,"hpp":30800000,"qty":1},"discrepancy":1800000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_0459/JL/UTM/0622_TANK HO LONG 190L (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 190L (0459/JL/UTM/0622)","description":"Item 'TANK HO LONG 190L' dijual seharga Rp 29.000.000 padahal HPP tercatat Rp 30.800.000 (Selisih minus: Rp 1.800.000/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.800.000.","referenceKey":"0459/JL/UTM/0622","detectedValue":{"harga_jual":29000000,"hpp":30800000,"qty":1},"discrepancy":1800000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_0371/JL/UTM/0522_TANK HO LONG 190L (AKS)","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: TANK HO LONG 190L (0371/JL/UTM/0522)","description":"Item 'TANK HO LONG 190L' dijual seharga Rp 29.000.000 padahal HPP tercatat Rp 30.800.000 (Selisih minus: Rp 1.800.000/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.800.000.","referenceKey":"0371/JL/UTM/0522","detectedValue":{"harga_jual":29000000,"hpp":30800000,"qty":1},"discrepancy":1800000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_2337/JL/UTM/0424_WATER TANK CAP HL 160 POLOS","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: WATER TANK CAP HL 160 POLOS (2337/JL/UTM/0424)","description":"Item 'WATER TANK CAP HL 160 POLOS' dijual seharga Rp 900.000 padahal HPP tercatat Rp 2.678.800 (Selisih minus: Rp 1.778.800/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.778.800.","referenceKey":"2337/JL/UTM/0424","detectedValue":{"harga_jual":900000,"hpp":2678800,"qty":1},"discrepancy":1778800,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_1995/JL/UTM/1223_WATER TANK CAP HL 160 POLOS","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: WATER TANK CAP HL 160 POLOS (1995/JL/UTM/1223)","description":"Item 'WATER TANK CAP HL 160 POLOS' dijual seharga Rp 900.000 padahal HPP tercatat Rp 2.678.800 (Selisih minus: Rp 1.778.800/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.778.800.","referenceKey":"1995/JL/UTM/1223","detectedValue":{"harga_jual":900000,"hpp":2678800,"qty":1},"discrepancy":1778800,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_1758/JL/UTM/0923_WATER TANK CAP HL 160 POLOS","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: WATER TANK CAP HL 160 POLOS (1758/JL/UTM/0923)","description":"Item 'WATER TANK CAP HL 160 POLOS' dijual seharga Rp 900.000 padahal HPP tercatat Rp 2.678.800 (Selisih minus: Rp 1.778.800/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.778.800.","referenceKey":"1758/JL/UTM/0923","detectedValue":{"harga_jual":900000,"hpp":2678800,"qty":1},"discrepancy":1778800,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_0996/JL/UTM/1222_WATER COOLER KH400 ADV","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: WATER COOLER KH400 ADV (0996/JL/UTM/1222)","description":"Item 'WATER COOLER KH400 ADV' dijual seharga Rp 10.800.000 padahal HPP tercatat Rp 12.566.400 (Selisih minus: Rp 1.766.400/satuan). Jumlah terjual: 1. Total potensi kerugian kotor pada baris ini: Rp 1.766.400.","referenceKey":"0996/JL/UTM/1222","detectedValue":{"harga_jual":10800000,"hpp":12566400,"qty":1},"discrepancy":1766400,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_2383/JL/UTM/0424_POMPA KEONG 2''","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: POMPA KEONG 2'' PC8000 KIRI (2383/JL/UTM/0424)","description":"Item 'POMPA KEONG 2'' PC8000 KIRI' dijual seharga Rp 2.475.000 padahal HPP tercatat Rp 3.350.000 (Selisih minus: Rp 875.000/satuan). Jumlah terjual: 2. Total potensi kerugian kotor pada baris ini: Rp 1.750.000.","referenceKey":"2383/JL/UTM/0424","detectedValue":{"harga_jual":2475000,"hpp":3350000,"qty":2},"discrepancy":1750000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_2537/JL/UTM/0624_POMPA KEONG 2''","code":"SALES_BELOW_COST","category":"SALES","severity":"CRITICAL","title":"Penjualan di Bawah HPP: POMPA KEONG 2'' PC8000 KIRI (2537/JL/UTM/0624)","description":"Item 'POMPA KEONG 2'' PC8000 KIRI' dijual seharga Rp 2.500.000 padahal HPP tercatat Rp 3.350.000 (Selisih minus: Rp 850.000/satuan). Jumlah terjual: 2. Total potensi kerugian kotor pada baris ini: Rp 1.700.000.","referenceKey":"2537/JL/UTM/0624","detectedValue":{"harga_jual":2500000,"hpp":3350000,"qty":2},"discrepancy":1700000,"remediation":"Audit kebijakan diskon kasir, cek apakah HPP di master item melonjak karena salah input faktur beli, atau apakah ada kesalahan input harga jual oleh staf kasir."},{"id":"SALES_LOSS_AGGREGATE","code":"SALES_BELOW_COST","category":"SALES","severity":"WARNING","title":"Rekapitulasi: 1293 Transaksi Terindikasi Jual Rugi (Total Margin Minus: Rp 226.631.529,3)","description":"Terdapat total 1293 baris penjualan barang yang dijual di bawah HPP dengan akumulasi kebocoran margin laba kotor sebesar Rp 226.631.529,3.","detectedValue":226631529.3,"remediation":"Tinjau aturan batasan diskon maksimal kasir di menu Pengaturan Pengguna iPos 4 agar sistem menolak transaksi yang harga jualnya di bawah HPP."},{"id":"PURCHASE_EMPTY_LEGACY_BATCH","code":"PURCHASE_EMPTY_DETAIL","category":"PURCHASE","severity":"INFO","title":"67 Faktur Pembelian Kosong / Saldo Awal Terbengkalai","description":"Ditemukan 67 faktur pembelian dengan nominal Rp 0 tanpa rincian barang (sebagian besar rekaman setup awal sebelum 2022).","detectedValue":67,"remediation":"Biarkan sebagai riwayat log atau bersihkan bila ingin merapikan database."},{"id":"PURCHASE_ZERO_2671/BL/UTM/0126_METAL JALAN RD/RE/RF8/10 STD","code":"PURCHASE_ZERO_PRICE","category":"PURCHASE","severity":"WARNING","title":"Pembelian Harga Rp 0: METAL JALAN RD/RE/RF8/10 STD (2671/BL/UTM/0126)","description":"Item 'METAL JALAN RD/RE/RF8/10 STD' dibeli dengan harga Rp 0 sebanyak 1 unit pada faktur 2671/BL/UTM/0126 (tgl: 2026-01-02 14:02:16, supplier: SU0064). Hal ini dapat merusak kalkulasi metode rata-rata (moving average) HPP menjadi turun drastis.","referenceKey":"2671/BL/UTM/0126","detectedValue":{"item":"METAL JALAN RD/RE/RF8/10 STD","qty":1,"harga":0},"remediation":"Jika ini bukan sampel gratis atau bonus resmi dari supplier, edit faktur 2671/BL/UTM/0126 dan isi harga beli sebenarnya. Jika memang bonus, pastikan perlakuan akuntansi persediaan disesuaikan."},{"id":"PURCHASE_ZERO_2113/BL/UTM/0125_PISTON 4D30","code":"PURCHASE_ZERO_PRICE","category":"PURCHASE","severity":"WARNING","title":"Pembelian Harga Rp 0: PISTON 4D30 STD (2113/BL/UTM/0125)","description":"Item 'PISTON 4D30 STD' dibeli dengan harga Rp 0 sebanyak 4 unit pada faktur 2113/BL/UTM/0125 (tgl: 2024-11-26 10:57:26, supplier: SU0064). Hal ini dapat merusak kalkulasi metode rata-rata (moving average) HPP menjadi turun drastis.","referenceKey":"2113/BL/UTM/0125","detectedValue":{"item":"PISTON 4D30 STD","qty":4,"harga":0},"remediation":"Jika ini bukan sampel gratis atau bonus resmi dari supplier, edit faktur 2113/BL/UTM/0125 dan isi harga beli sebenarnya. Jika memang bonus, pastikan perlakuan akuntansi persediaan disesuaikan."},{"id":"PURCHASE_ZERO_0934/BL/UTM/0423_METAL JALAN RD/RE/RF8/10 STD","code":"PURCHASE_ZERO_PRICE","category":"PURCHASE","severity":"WARNING","title":"Pembelian Harga Rp 0: METAL JALAN RD/RE/RF8/10 STD (0934/BL/UTM/0423)","description":"Item 'METAL JALAN RD/RE/RF8/10 STD' dibeli dengan harga Rp 0 sebanyak 1 unit pada faktur 0934/BL/UTM/0423 (tgl: 2023-04-13 09:44:36, supplier: SU0048). Hal ini dapat merusak kalkulasi metode rata-rata (moving average) HPP menjadi turun drastis.","referenceKey":"0934/BL/UTM/0423","detectedValue":{"item":"METAL JALAN RD/RE/RF8/10 STD","qty":1,"harga":0},"remediation":"Jika ini bukan sampel gratis atau bonus resmi dari supplier, edit faktur 0934/BL/UTM/0423 dan isi harga beli sebenarnya. Jika memang bonus, pastikan perlakuan akuntansi persediaan disesuaikan."},{"id":"PURCHASE_ZERO_0934/BL/UTM/0423_METAL DUDUK NISSAN STD","code":"PURCHASE_ZERO_PRICE","category":"PURCHASE","severity":"WARNING","title":"Pembelian Harga Rp 0: METAL DUDUK RD/RE/RF8 STD (0934/BL/UTM/0423)","description":"Item 'METAL DUDUK RD/RE/RF8 STD' dibeli dengan harga Rp 0 sebanyak 1 unit pada faktur 0934/BL/UTM/0423 (tgl: 2023-04-13 09:44:36, supplier: SU0048). Hal ini dapat merusak kalkulasi metode rata-rata (moving average) HPP menjadi turun drastis.","referenceKey":"0934/BL/UTM/0423","detectedValue":{"item":"METAL DUDUK RD/RE/RF8 STD","qty":1,"harga":0},"remediation":"Jika ini bukan sampel gratis atau bonus resmi dari supplier, edit faktur 0934/BL/UTM/0423 dan isi harga beli sebenarnya. Jika memang bonus, pastikan perlakuan akuntansi persediaan disesuaikan."},{"id":"CSH_INVALID_FLAG_7-3000","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (7-3000 - PENDAPTAN LAIN)","description":"Akun 'PENDAPTAN LAIN' (Kelompok: 7) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"7-3000","detectedValue":{"kodeacc":"7-3000","kelompok":"7"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '7-3000', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_1-2300","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (1-2300 - KENDARAAN)","description":"Akun 'KENDARAAN' (Kelompok: 1) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"1-2300","detectedValue":{"kodeacc":"1-2300","kelompok":"1"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '1-2300', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_1-2400","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (1-2400 - PERALATAN)","description":"Akun 'PERALATAN' (Kelompok: 1) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"1-2400","detectedValue":{"kodeacc":"1-2400","kelompok":"1"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '1-2400', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_3-3000","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (3-3000 - LABA TAHUN BERJALAN)","description":"Akun 'LABA TAHUN BERJALAN' (Kelompok: 3) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"3-3000","detectedValue":{"kodeacc":"3-3000","kelompok":"3"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '3-3000', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_3-2000","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (3-2000 - LABA DITAHAN)","description":"Akun 'LABA DITAHAN' (Kelompok: 3) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"3-2000","detectedValue":{"kodeacc":"3-2000","kelompok":"3"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '3-2000', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_5-1100","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (5-1100 - HARGA POKOK PENJUALAN)","description":"Akun 'HARGA POKOK PENJUALAN' (Kelompok: 5) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"5-1100","detectedValue":{"kodeacc":"5-1100","kelompok":"5"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '5-1100', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_1-2500","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (1-2500 - INVENTORY)","description":"Akun 'INVENTORY' (Kelompok: 1) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"1-2500","detectedValue":{"kodeacc":"1-2500","kelompok":"1"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '1-2500', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_7-4000","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (7-4000 - KELEBIHAN PENERIMAAN PIUTANG)","description":"Akun 'KELEBIHAN PENERIMAAN PIUTANG' (Kelompok: 7) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"7-4000","detectedValue":{"kodeacc":"7-4000","kelompok":"7"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '7-4000', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_6-3003","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (6-3003 - BIAYA BONUS KARYAWAN)","description":"Akun 'BIAYA BONUS KARYAWAN' (Kelompok: 6) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"6-3003","detectedValue":{"kodeacc":"6-3003","kelompok":"6"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '6-3003', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_6-3004","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (6-3004 - BIAYA PEMBAGIAN KEUNTUNGAN)","description":"Akun 'BIAYA PEMBAGIAN KEUNTUNGAN' (Kelompok: 6) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"6-3004","detectedValue":{"kodeacc":"6-3004","kelompok":"6"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '6-3004', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_3-9100","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (3-9100 - DEVIDEN)","description":"Akun 'DEVIDEN' (Kelompok: 3) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"3-9100","detectedValue":{"kodeacc":"3-9100","kelompok":"3"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '3-9100', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_INVALID_FLAG_1-1301","code":"CSH_INVALID_FLAG","category":"CASH","severity":"CRITICAL","title":"Salah Konfigurasi Flag Kas/Bank (1-1301 - PERSEDIAAN BARANG)","description":"Akun 'PERSEDIAAN BARANG' (Kelompok: 1) ditandai sebagai 'kasbank = true' di master data. Akun ini BUKAN akun kas/bank likuid, sehingga akan mengacaukan Laporan Arus Kas, Buku Kas, dan daftar pilihan kas pada modul transaksi.","referenceKey":"1-1301","detectedValue":{"kodeacc":"1-1301","kelompok":"1"},"remediation":"Buka menu Data Perkiraan di iPos 4, edit akun '1-1301', dan hapus centang opsi 'Kas / Bank'."},{"id":"CSH_NEGATIVE_BALANCE_1-1120","code":"CSH_NEGATIVE_BALANCE","category":"CASH","severity":"WARNING","title":"Saldo Kas/Bank Bernilai Minus (1-1120 - BANK BCA)","description":"Akun 'BANK BCA' memiliki akumulasi saldo minus sebesar Rp -903.729.085. Secara fisik uang kas tidak mungkin minus, dan di Neraca akan memunculkan nilai aset kas negatif yang aneh bagi pembaca laporan keuangan.","referenceKey":"1-1120","detectedValue":-903729085,"remediation":"Lakukan rekonsiliasi rekening koran/buku kas. Periksa apakah ada transaksi penerimaan (penjualan tunai, transfer masuk, setoran modal) yang belum diinput atau terjadi pengeluaran ganda. Jika merupakan fasilitas cerukan/pinjaman bank (overdraft), pindahkan saldo kewajiban ke akun Hutang Bank (Kelompok 2)."},{"id":"CSH_NEGATIVE_BALANCE_1-1122","code":"CSH_NEGATIVE_BALANCE","category":"CASH","severity":"WARNING","title":"Saldo Kas/Bank Bernilai Minus (1-1122 - BANK BCA HIP)","description":"Akun 'BANK BCA HIP' memiliki akumulasi saldo minus sebesar Rp -25.207.262,2. Secara fisik uang kas tidak mungkin minus, dan di Neraca akan memunculkan nilai aset kas negatif yang aneh bagi pembaca laporan keuangan.","referenceKey":"1-1122","detectedValue":-25207262.2,"remediation":"Lakukan rekonsiliasi rekening koran/buku kas. Periksa apakah ada transaksi penerimaan (penjualan tunai, transfer masuk, setoran modal) yang belum diinput atau terjadi pengeluaran ganda. Jika merupakan fasilitas cerukan/pinjaman bank (overdraft), pindahkan saldo kewajiban ke akun Hutang Bank (Kelompok 2)."},{"id":"INV_ZERO_HPP_PISTON 4D30","code":"INV_ZERO_HPP","category":"INVENTORY","severity":"WARNING","title":"Harga Pokok (HPP) Rp 0: PISTON 4D30 (PISTON 4D30 STD)","description":"Item barang 'PISTON 4D30 STD' telah terjual tetapi tercatat memiliki Harga Pokok Rp 0. Hal ini menyebabkan HPP Penjualan di Laporan Laba Rugi menjadi Rp 0 dan Laba Kotor tercatat 100% (fiktif/terlalu tinggi).","referenceKey":"PISTON 4D30","detectedValue":0,"remediation":"Buka Master Data Item, perbarui 'Harga Pokok' item PISTON 4D30 sesuai dengan faktur pembelian atau harga beli modal riil, lalu jalankan menu 'Proses Ulang HPP' di iPos 4."},{"id":"INV_ZERO_HPP_METAL JALAN 8DC11","code":"INV_ZERO_HPP","category":"INVENTORY","severity":"WARNING","title":"Harga Pokok (HPP) Rp 0: METAL JALAN 8DC11 (METAL JALAN 8DC11/81-92 DAIDO R6317K (0.25).)","description":"Item barang 'METAL JALAN 8DC11/81-92 DAIDO R6317K (0.25).' telah terjual tetapi tercatat memiliki Harga Pokok Rp 0. Hal ini menyebabkan HPP Penjualan di Laporan Laba Rugi menjadi Rp 0 dan Laba Kotor tercatat 100% (fiktif/terlalu tinggi).","referenceKey":"METAL JALAN 8DC11","detectedValue":0,"remediation":"Buka Master Data Item, perbarui 'Harga Pokok' item METAL JALAN 8DC11 sesuai dengan faktur pembelian atau harga beli modal riil, lalu jalankan menu 'Proses Ulang HPP' di iPos 4."},{"id":"INV_ZERO_HPP_METAL DUDUK NISSAN STD","code":"INV_ZERO_HPP","category":"INVENTORY","severity":"WARNING","title":"Harga Pokok (HPP) Rp 0: METAL DUDUK NISSAN STD (METAL DUDUK RD/RE/RF8 STD)","description":"Item barang 'METAL DUDUK RD/RE/RF8 STD' telah terjual tetapi tercatat memiliki Harga Pokok Rp 0. Hal ini menyebabkan HPP Penjualan di Laporan Laba Rugi menjadi Rp 0 dan Laba Kotor tercatat 100% (fiktif/terlalu tinggi).","referenceKey":"METAL DUDUK NISSAN STD","detectedValue":0,"remediation":"Buka Master Data Item, perbarui 'Harga Pokok' item METAL DUDUK NISSAN STD sesuai dengan faktur pembelian atau harga beli modal riil, lalu jalankan menu 'Proses Ulang HPP' di iPos 4."},{"id":"INV_OUTOFSTOCK_SALES_SUMMARY","code":"INV_OUTOFSTOCK_SALES","category":"INVENTORY","severity":"CRITICAL","title":"Penjualan Saat Stok Minus (507 Transaksi / 443 Item)","description":"Ditemukan 507 transaksi penjualan (1.998 unit barang pada 443 item berbeda) yang dilakukan saat stok habis/minus (flag: OUTOFSTOCK di tbl_item_ik). Total nilai HPP yang terdistorsi mencapai Rp 391.321.260,18. Penjualan mendahului input faktur pembelian merusak akurasi kartu stok dan perhitungan HPP FIFO.","referenceKey":"OUTOFSTOCK","detectedValue":391321260.18,"remediation":"Pastikan seluruh faktur pembelian diinput sesuai tanggal fisik barang diterima sebelum transaksi penjualan dibukukan. Di menu 'Pengaturan > Pengaturan Umum', ubah opsi 'Pengecekan Stok pada Penjualan' menjadi 'Stok habis tidak bisa dijual'. Setelah faktur beli lengkap, jalankan 'Proses Bulanan' dengan opsi 'Perbaikan Stok' dicentang."},{"id":"SUB_AR_DIFF","code":"SUB_AR_DIFF","category":"SUBLEDGER","severity":"CRITICAL","title":"Selisih Total Piutang Faktur vs Akun Piutang Usaha (1-1210)","description":"Total sisa piutang pada kartu faktur pelanggan adalah Rp 7.715.401.373,49, sedangkan saldo akun Piutang Usaha (1-1210) di Buku Besar adalah Rp 7.360.284.458 (Selisih: Rp 355.116.915,49). Laporan Umur Piutang tidak cocok dengan Neraca.","referenceKey":"1-1210","detectedValue":{"kartu_piutang":7715401373.49,"buku_besar":7360284458},"discrepancy":355116915.4899998,"remediation":"Lakukan rekonsiliasi antara Laporan Buku Pembantu Piutang dengan Buku Besar Piutang. Periksa apakah ada faktur piutang yang dihapus/diedit tanpa membatalkan jurnal pelunasannya atau ada Jurnal Umum manual yang langsung memotong akun 1-1210 tanpa lewat modul pembayaran piutang."},{"id":"SUB_AP_DIFF","code":"SUB_AP_DIFF","category":"SUBLEDGER","severity":"CRITICAL","title":"Selisih Total Hutang Faktur vs Akun Hutang Usaha (2-1101)","description":"Total sisa hutang pada faktur pembelian supplier adalah Rp 4.107.230.274,62, sedangkan saldo akun Hutang Usaha (2-1101) di Buku Besar adalah Rp 2.994.021.985,59 (Selisih: Rp 1.113.208.289,03). Laporan Buku Pembantu Hutang tidak cocok dengan Neraca.","referenceKey":"2-1101","detectedValue":{"kartu_hutang":4107230274.62,"buku_besar":2994021985.59},"discrepancy":1113208289.0299997,"remediation":"Lakukan rekonsiliasi antara Laporan Buku Pembantu Hutang dengan Buku Besar Hutang. Periksa pembayaran hutang atau retur pembelian yang belum terjurnal dengan benar."}]};
+    let currentCategory = 'ALL';
+    let currentSeverity = 'ALL';
+    let currentViewMode = window.innerWidth < 768 ? 'card' : 'card';
+    let searchQuery = '';
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      const cardView = document.getElementById('findingsCardView');
+      const tableView = document.getElementById('findingsTableView');
+      const btnCard = document.getElementById('btnViewCard');
+      const btnTable = document.getElementById('btnViewTable');
+
+      if (mode === 'card') {
+        cardView.classList.remove('hidden');
+        tableView.classList.add('hidden');
+        btnCard.className = 'px-2 py-1 rounded text-[11px] font-medium transition flex items-center gap-1 bg-indigo-600 text-white';
+        btnTable.className = 'px-2 py-1 rounded text-[11px] font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1';
+      } else {
+        cardView.classList.add('hidden');
+        tableView.classList.remove('hidden');
+        btnTable.className = 'px-2 py-1 rounded text-[11px] font-medium transition flex items-center gap-1 bg-indigo-600 text-white';
+        btnCard.className = 'px-2 py-1 rounded text-[11px] font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1';
+      }
+    }
+
+    function switchTab(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-1.5';
+      });
+      const activeBtn = document.getElementById('tab_' + cat);
+      if (activeBtn) {
+        activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5';
+      }
+
+      const findingsContainer = document.getElementById('findingsContainer');
+      const remediationView = document.getElementById('remediationView');
+
+      if (cat === 'REMEDIATION') {
+        findingsContainer.classList.add('hidden');
+        remediationView.classList.remove('hidden');
+      } else {
+        findingsContainer.classList.remove('hidden');
+        remediationView.classList.add('hidden');
+        applyFilters();
+      }
+    }
+
+    function setSeverityFilter(sev) {
+      currentSeverity = sev;
+      document.querySelectorAll('.sev-btn').forEach(btn => {
+        btn.classList.remove('bg-slate-800', 'text-slate-200', 'border-slate-700');
+        btn.classList.add('border-transparent');
+      });
+      const activeBtn = document.getElementById('sev_' + sev);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent');
+        activeBtn.classList.add('bg-slate-800', 'text-slate-200', 'border-slate-700');
+      }
+      applyFilters();
+    }
+
+    function applyFilters() {
+      searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filtered = auditData.items.filter(item => {
+        // Filter Category
+        if (currentCategory !== 'ALL' && item.category !== currentCategory) {
+          return false;
+        }
+        // Filter Severity
+        if (currentSeverity !== 'ALL' && item.severity !== currentSeverity) {
+          return false;
+        }
+        // Filter Search
+        if (searchQuery) {
+          const matchTitle = item.title.toLowerCase().includes(searchQuery);
+          const matchDesc = item.description.toLowerCase().includes(searchQuery);
+          const matchRem = item.remediation.toLowerCase().includes(searchQuery);
+          const matchRef = item.referenceKey ? item.referenceKey.toLowerCase().includes(searchQuery) : false;
+          const matchCode = item.code.toLowerCase().includes(searchQuery);
+          return matchTitle || matchDesc || matchRem || matchRef || matchCode;
+        }
+        return true;
+      });
+
+      renderData(filtered);
+    }
+
+    function renderData(items) {
+      const countEl = document.getElementById('displayedCount');
+      countEl.innerText = items.length;
+
+      renderCardView(items);
+      renderTableView(items);
+    }
+
+    function getCategoryBadge(cat) {
+      switch (cat) {
+        case 'SALES': return 'Penjualan';
+        case 'PURCHASE': return 'Pembelian';
+        case 'CASH': return 'Kas & Bank';
+        case 'INVENTORY': return 'Persediaan';
+        case 'SUBLEDGER': return 'Hutang/Piutang';
+        case 'JOURNAL': return 'Jurnal Umum';
+        default: return cat;
+      }
+    }
+
+    function renderCardView(items) {
+      const cardContainer = document.getElementById('findingsCardView');
+      if (items.length === 0) {
+        cardContainer.innerHTML = '<div class="text-center py-10 bg-slate-900/40 rounded-xl border border-slate-800 text-slate-500 text-xs">Tidak ada temuan anomali yang sesuai dengan filter pencarian.</div>';
+        return;
+      }
+
+      cardContainer.innerHTML = items.map((it, idx) => {
+        const isCritical = it.severity === 'CRITICAL';
+        const isWarning = it.severity === 'WARNING';
+        
+        const borderCard = isCritical 
+          ? 'border-rose-900/60 hover:border-rose-700/80' 
+          : isWarning 
+          ? 'border-amber-900/60 hover:border-amber-700/80' 
+          : 'border-blue-900/60 hover:border-blue-700/80';
+
+        const sevBadge = isCritical
+          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+          : isWarning
+          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+          : 'bg-blue-500/10 text-blue-400 border border-blue-500/30';
+
+        return `
+          <div class="bg-slate-900/70 border ${borderCard} rounded-xl p-3.5 sm:p-4 shadow-sm space-y-2.5 transition card-print">
+            <!-- Header Card: Index + Severity + Category + Ref -->
+            <div class="flex flex-wrap items-center justify-between gap-1.5 text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-slate-500 text-[11px]">#${idx + 1}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${sevBadge}">${it.severity}</span>
+                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-medium">${getCategoryBadge(it.category)}</span>
+              </div>
+              ${it.referenceKey ? `<span class="font-mono text-[11px] px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-900/50 text-indigo-300">${it.referenceKey}</span>` : ''}
+            </div>
+
+            <!-- Title & Description -->
+            <div>
+              <h4 class="font-bold text-white text-xs sm:text-sm leading-snug">${it.title}</h4>
+              <p class="text-slate-300 text-[11px] sm:text-xs mt-1 leading-relaxed">${it.description}</p>
+            </div>
+
+            <!-- Remediasi Box -->
+            <div class="bg-slate-950/70 border border-slate-800/80 rounded-lg p-2.5 text-[11px] sm:text-xs text-slate-300 leading-relaxed">
+              <div class="flex items-start gap-1.5">
+                <span class="text-amber-400 font-bold shrink-0">💡</span>
+                <div class="space-y-0.5">
+                  <span class="text-amber-300/90 font-semibold">Rekomendasi Tindakan:</span>
+                  <div class="text-slate-300">${it.remediation}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTableView(items) {
+      const tbody = document.getElementById('findingsTableBody');
+      if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Tidak ada temuan anomali yang sesuai dengan filter pencarian.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = items.map((it, idx) => {
+        const sevClass = it.severity === 'CRITICAL'
+          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+          : it.severity === 'WARNING'
+          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition group">
+            <td class="py-3 px-4 text-center font-mono text-slate-500">${idx + 1}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${sevClass}">${it.severity}</span>
+            </td>
+            <td class="py-3 px-4 text-slate-400 font-medium text-[11px]">${getCategoryBadge(it.category)}</td>
+            <td class="py-3 px-4">
+              <div class="font-semibold text-white group-hover:text-indigo-300 transition">${it.title}</div>
+              <div class="text-slate-400 text-[11px] mt-0.5 leading-relaxed">${it.description}</div>
+            </td>
+            <td class="py-3 px-4 font-mono text-indigo-400 text-[11px] whitespace-nowrap">${it.referenceKey || '-'}</td>
+            <td class="py-3 px-4 text-slate-300 text-[11px] leading-relaxed">
+              <div class="flex items-start gap-1">
+                <span class="text-amber-400 font-bold shrink-0">💡</span>
+                <span>${it.remediation}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit_report_${auditData.database}_${auditData.timestamp.split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Auto set view mode on load
+    setViewMode(window.innerWidth < 768 ? 'card' : 'card');
+    applyFilters();
+  </script>
+</body>
+</html>

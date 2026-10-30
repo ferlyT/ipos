@@ -1,0 +1,37 @@
+{
+  "name": "backend",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun --watch src/index.ts",
+    "audit": "bun run src/cli/audit.ts",
+    "detect:stock-minus": "bun run src/cli/detect-negative-stock.ts",
+    "test:purchasing": "bun run src/test-purchasing.ts",
+    "test:receivables": "bun run src/test-receivables.ts",
+    "test:advanced-master": "bun run src/test-advanced-master.ts",
+    "test:warehouse": "bun run src/test-warehouse-consignment.ts",
+    "test:cash-bank": "bun run src/test-cash-bank.ts",
+    "test:analytics": "bun run src/test-analytics-bi.ts",
+    "test:order-promotion": "bun run src/test-order-promotion.ts",
+    "test:wms": "bun run src/test-wms-engine.ts",
+    "test:api": "bun run src/test-api.ts",
+    "test:security": "bun run src/test-security-auth.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.11"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^3.4.9"
+  }
+}

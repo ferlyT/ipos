@@ -1,0 +1,70 @@
+# Node & Bun Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js Build Outputs & Caches
+.next/
+out/
+build/
+dist/
+.cache/
+*.tsbuildinfo
+.eslintcache
+
+# Environment Variables
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# Database Backups & Dumps
+backups/
+backend/backups/
+*.dump
+*.sql
+*.sqlite
+
+# Logs & Temporary Files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+report.*.json
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Legacy iPos 4.0 Desktop Application Binaries & System Files (Keep repo clean for modern web stack)
+/*.exe
+/*.dll*
+/*.dat
+/*.conf
+/*.confdb
+/*.rtf
+/*.manifest
+/*.config
+/*.txt
+/Barcode/
+/Barcon/
+/contoh/
+/dbutils/
+/dbutils9.5/
+/LabelRak/
+/Report/
+/Template/
+/update/
+/x64/
+/x86/
