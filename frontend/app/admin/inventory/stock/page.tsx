@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber, formatDateTime } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   Boxes,
   Search,
@@ -14,14 +15,29 @@ import {
   X,
   Layers,
   Download,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function InventoryStockPage() {
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [selectedOffice, setSelectedOffice] = useState<string>("UTM");
   const [search, setSearch] = useState<string>("");
+  const [negativeOnly, setNegativeOnly] = useState<boolean>(false);
   const [stockList, setStockList] = useState<any[]>([]);
+  const [summary, setSummary] = useState<{
+    totalSKU: number;
+    totalPhysicalQty: number;
+    totalValuation: number;
+    negativeSKU: number;
+    negativeQty: number;
+  } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Modal Kartu Stok
   const [cardItem, setCardItem] = useState<any | null>(null);
@@ -39,11 +55,31 @@ export default function InventoryStockPage() {
   }, []);
 
   // Load Stock Data
-  const loadStock = async () => {
+  const loadStock = async (
+    targetPage: number = page,
+    targetLimit: number = pageSize,
+    targetSearch: string = search,
+    targetOffice: string = selectedOffice,
+    targetNegative: boolean = negativeOnly
+  ) => {
+    if (!targetOffice) return;
     setLoading(true);
     try {
-      const data = await api.inventory.getStock(selectedOffice, search);
-      setStockList(data || []);
+      const res = await api.inventory.getStock(
+        targetOffice,
+        targetSearch,
+        targetLimit,
+        targetPage,
+        targetNegative
+      );
+      const paginated = normalizePaginated<any>(res, targetPage, targetLimit);
+      setStockList(paginated.items);
+      setTotalItems(paginated.pagination.total);
+      setTotalPages(paginated.pagination.totalPages);
+      setPage(paginated.pagination.page);
+      if (res?.summary) {
+        setSummary(res.summary);
+      }
     } catch (err) {
       console.error("Gagal memuat stok:", err);
     } finally {
@@ -53,13 +89,42 @@ export default function InventoryStockPage() {
 
   useEffect(() => {
     if (selectedOffice) {
-      loadStock();
+      setPage(1);
+      loadStock(1, pageSize, search, selectedOffice, negativeOnly);
     }
   }, [selectedOffice]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadStock();
+    setPage(1);
+    loadStock(1, pageSize, search, selectedOffice, negativeOnly);
+  };
+
+  const handleToggleNegative = () => {
+    const nextVal = !negativeOnly;
+    setNegativeOnly(nextVal);
+    setPage(1);
+    loadStock(1, pageSize, search, selectedOffice, nextVal);
+  };
+
+  const handleResetFilter = () => {
+    setNegativeOnly(false);
+    setSearch("");
+    setPage(1);
+    loadStock(1, pageSize, "", selectedOffice, false);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadStock(newPage, pageSize, search, selectedOffice, negativeOnly);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadStock(1, newSize, search, selectedOffice, negativeOnly);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   // Buka Kartu Stok Modal
@@ -76,16 +141,37 @@ export default function InventoryStockPage() {
     }
   };
 
-  const totalSKU = stockList.length;
-  const totalPhysicalQty = stockList.reduce((sum, it) => sum + (it.stokGudang || 0), 0);
-  const totalValuation = stockList.reduce(
-    (sum, it) => sum + (it.stokGudang || 0) * (it.hpp || 0),
-    0
-  );
+  const totalSKU = summary ? summary.totalSKU : stockList.length;
+  const totalPhysicalQty = summary
+    ? summary.totalPhysicalQty
+    : stockList.reduce((sum, it) => sum + (it.stokGudang || 0), 0);
+  const totalValuation = summary
+    ? summary.totalValuation
+    : stockList.reduce(
+        (sum, it) => sum + (it.stokGudang || 0) * (it.hpp || 0),
+        0
+      );
+  const negativeSKU = summary
+    ? summary.negativeSKU
+    : stockList.filter((it) => (it.stokGudang || 0) < 0).length;
+  const negativeQty = summary
+    ? summary.negativeQty
+    : stockList
+        .filter((it) => (it.stokGudang || 0) < 0)
+        .reduce((sum, it) => sum + it.stokGudang, 0);
 
   const handleExportCSV = () => {
     if (stockList.length === 0) return;
-    const headers = ["Kode Item", "Nama Item", "Jenis", "Merek", "Satuan", "Stok Gudang", "HPP (Pokok)", "Total Nilai Aset"];
+    const headers = [
+      "Kode Item",
+      "Nama Item",
+      "Jenis",
+      "Merek",
+      "Satuan",
+      "Stok Gudang",
+      "HPP (Pokok)",
+      "Total Nilai Aset",
+    ];
     const rows = stockList.map((it) => [
       `"${it.kodeitem}"`,
       `"${(it.namaitem || "").replace(/"/g, '""')}"`,
@@ -97,11 +183,17 @@ export default function InventoryStockPage() {
       (it.stokGudang || 0) * (it.hpp || 0),
     ]);
     const csvContent =
-      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `laporan_stok_${selectedOffice}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      "download",
+      `laporan_stok_${selectedOffice}${negativeOnly ? "_minus" : ""}_${new Date()
+        .toISOString()
+        .slice(0, 10)}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -171,7 +263,7 @@ export default function InventoryStockPage() {
       </div>
 
       {/* KPI Cards Ringkasan Gudang */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
           <div className="p-3 bg-emerald-950 text-emerald-400 rounded-xl border border-emerald-800/60">
             <Layers className="w-5 h-5" />
@@ -201,10 +293,103 @@ export default function InventoryStockPage() {
             <div className="text-xl font-black text-white font-mono mt-0.5">{formatRupiah(totalValuation)}</div>
           </div>
         </div>
+
+        {/* Card Stok Minus Defisit (Klik untuk Filter) */}
+        <button
+          type="button"
+          onClick={handleToggleNegative}
+          className={`text-left rounded-2xl p-4 flex items-center space-x-4 transition-all cursor-pointer relative group ${
+            negativeOnly
+              ? "bg-red-950/80 border-2 border-red-500 ring-4 ring-red-500/20 shadow-lg shadow-red-950/50"
+              : negativeSKU > 0
+              ? "bg-zinc-900 border border-red-900/50 hover:border-red-500 hover:bg-zinc-800/60"
+              : "bg-zinc-900 border border-emerald-900/40 hover:border-emerald-600"
+          }`}
+          title={negativeOnly ? "Klik untuk melihat semua stok" : "Klik untuk memfilter barang dengan stok minus"}
+        >
+          <div
+            className={`p-3 rounded-xl border ${
+              negativeOnly
+                ? "bg-red-500 text-white border-red-400"
+                : negativeSKU > 0
+                ? "bg-red-950 text-red-400 border-red-800/60 group-hover:scale-105 transition-transform"
+                : "bg-emerald-950 text-emerald-400 border-emerald-800/60"
+            }`}
+          >
+            {negativeSKU > 0 ? (
+              <AlertTriangle className="w-5 h-5" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-red-400">
+                Stok Minus Defisit
+              </span>
+              <span
+                className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
+                  negativeOnly
+                    ? "bg-red-500 text-white"
+                    : negativeSKU > 0
+                    ? "bg-red-950 text-red-300 border border-red-800/60"
+                    : "bg-emerald-950 text-emerald-300 border border-emerald-800/60"
+                }`}
+              >
+                {negativeOnly ? "Filter Aktif" : "Klik Filter"}
+              </span>
+            </div>
+            <div
+              className={`text-xl font-black font-mono mt-0.5 ${
+                negativeSKU > 0 ? "text-red-400" : "text-emerald-400"
+              }`}
+            >
+              {negativeSKU > 0 ? `${formatNumber(negativeSKU)} SKU` : "0 SKU (Aman)"}
+            </div>
+            <div className="text-[11px] text-zinc-400 truncate mt-0.5">
+              {negativeSKU > 0 ? `${formatNumber(negativeQty)} Unit Defisit` : "Semua stok terkendali"}
+            </div>
+          </div>
+        </button>
       </div>
 
+      {/* Alert Filter Stok Minus Aktif */}
+      {negativeOnly && (
+        <div className="bg-red-950/60 border border-red-800/70 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-red-900/60 text-red-300 rounded-xl">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-red-200">
+                Menampilkan Filter Aktif: Stok Minus Defisit (&lt; 0)
+              </div>
+              <div className="text-xs text-red-300/80">
+                Ditemukan {formatNumber(negativeSKU)} item dengan total defisit {formatNumber(negativeQty)} unit di gudang {selectedOffice}.
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleResetFilter}
+            className="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer shadow-md"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Tampilkan Semua Stok</span>
+          </button>
+        </div>
+      )}
+
       {/* Stock Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+      <div ref={tableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+        {loading && stockList.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Memuat data stok...</span>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead className="bg-zinc-850 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-800">
@@ -230,7 +415,9 @@ export default function InventoryStockPage() {
               ) : stockList.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-zinc-400">
-                    Tidak ada persediaan barang ditemukan di gudang {selectedOffice}.
+                    {negativeOnly
+                      ? `Tidak ada barang dengan stok minus (< 0) di gudang ${selectedOffice}. Semua persediaan aman.`
+                      : `Tidak ada persediaan barang ditemukan di gudang ${selectedOffice}.`}
                   </td>
                 </tr>
               ) : (
@@ -287,6 +474,17 @@ export default function InventoryStockPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        disabled={loading}
+      />
 
       {/* Modal Kartu Stok FIFO */}
       {cardItem && (

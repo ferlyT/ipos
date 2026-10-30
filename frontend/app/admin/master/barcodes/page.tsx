@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   Barcode,
   Printer,
@@ -62,6 +63,10 @@ export default function BarcodeDesignerPage() {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [queue, setQueue] = useState<PrintQueueItem[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   // Design & Label Configurations
   const [storeName, setStoreName] = useState<string>("IPOS 4.0 STORE");
@@ -81,11 +86,19 @@ export default function BarcodeDesignerPage() {
     );
   }, []);
 
-  const loadCatalog = async () => {
+  const loadCatalog = async (
+    targetPage: number = page,
+    targetLimit: number = pageSize,
+    targetSearch: string = search
+  ) => {
     setLoading(true);
     try {
-      const items = await api.master.getBarcodeCatalog(search, 40);
-      setCatalog(items || []);
+      const res = await api.master.getBarcodeCatalog(targetSearch, targetLimit, targetPage);
+      const paginated = normalizePaginated<any>(res, targetPage, targetLimit);
+      setCatalog(paginated.items);
+      setTotalItems(paginated.pagination.total);
+      setTotalPages(paginated.pagination.totalPages);
+      setPage(paginated.pagination.page);
     } catch (err) {
       console.error("Gagal memuat katalog barcode:", err);
     } finally {
@@ -94,12 +107,24 @@ export default function BarcodeDesignerPage() {
   };
 
   useEffect(() => {
-    loadCatalog();
+    loadCatalog(1, pageSize, "");
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadCatalog();
+    setPage(1);
+    loadCatalog(1, pageSize, search);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadCatalog(newPage, pageSize, search);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadCatalog(1, newSize, search);
   };
 
   const addToQueue = (item: any) => {
@@ -241,6 +266,17 @@ export default function BarcodeDesignerPage() {
                 ))
               )}
             </div>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              disabled={loading}
+              pageSizeOptions={[10, 20, 50]}
+            />
           </div>
 
           {/* Print Queue List */}

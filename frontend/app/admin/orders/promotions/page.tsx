@@ -111,8 +111,8 @@ export default function PromotionsPage() {
                 onChange={(e) => setSelectedItemCode(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-zinc-200 font-mono text-xs focus:outline-none focus:border-emerald-500"
               >
-                {items.map((it) => (
-                  <option key={it.kodeitem} value={it.kodeitem}>
+                {items.map((it, idx) => (
+                  <option key={it.kodeitem ? `${it.kodeitem}-${idx}` : `item-${idx}`} value={it.kodeitem}>
                     [{it.kodeitem}] {it.namaitem}
                   </option>
                 ))}
@@ -165,9 +165,9 @@ export default function PromotionsPage() {
                 onChange={(e) => setSelectedGroup(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-zinc-200 text-xs focus:outline-none focus:border-emerald-500"
               >
-                <option value="">Semua Pelanggan (Umum)</option>
-                {customerGroups.map((g: any) => (
-                  <option key={g.kodegrup} value={g.kodegrup}>
+                <option key="all" value="">Semua Pelanggan (Umum)</option>
+                {customerGroups.map((g: any, idx: number) => (
+                  <option key={g.kodegrup ? `${g.kodegrup}-${idx}` : `grp-${idx}`} value={g.kodegrup}>
                     {g.kodegrup} - {g.namagrup || g.kodegrup}
                   </option>
                 ))}
@@ -252,12 +252,12 @@ export default function PromotionsPage() {
                 </div>
 
                 {/* Grand Total Net Banner */}
-                <div className="bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-zinc-950 border border-emerald-800/60 p-5 rounded-2xl flex items-center justify-between">
+                <div className="promo-total-banner bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-950/40 dark:via-zinc-900 dark:to-zinc-950 border border-emerald-300 dark:border-emerald-800/60 p-5 rounded-2xl flex items-center justify-between shadow-sm">
                   <div>
-                    <div className="text-xs text-zinc-400 font-bold uppercase tracking-wider">
+                    <div className="promo-total-label text-xs text-emerald-800 dark:text-zinc-400 font-bold uppercase tracking-wider">
                       Total Tagihan Net ({promoResult.qty} {selectedItem?.satuan || "PCS"})
                     </div>
-                    <div className="text-3xl font-black text-emerald-400 font-mono mt-1">
+                    <div className="promo-total-value text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">
                       {formatRupiah(promoResult.totalPrice)}
                     </div>
                   </div>

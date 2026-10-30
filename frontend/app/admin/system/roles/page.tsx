@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import {
   ShieldCheck,
@@ -108,6 +109,7 @@ export default function RolesPermissionPage() {
         field,
         value: newVal,
       });
+      toast.success(`Akses ${modulid}.${field} diubah ke ${newVal ? "AKTIF" : "NONAKTIF"}`);
       setMessage(`Akses ${modulid}.${field} berhasil diubah ke ${newVal ? "AKTIF" : "NONAKTIF"}`);
       setTimeout(() => setMessage(null), 3000);
     } catch (err: any) {
@@ -115,7 +117,7 @@ export default function RolesPermissionPage() {
       setPermissions((prev) =>
         prev.map((p) => (p.modulid === modulid ? { ...p, [field]: currentVal } : p))
       );
-      alert("Gagal menyimpan perubahan hak akses: " + err.message);
+      toast.error("Gagal menyimpan perubahan hak akses: " + err.message);
     } finally {
       setSavingKey(null);
     }

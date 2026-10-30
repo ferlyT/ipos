@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { usePosCartStore } from "@/stores/pos-cart.store";
+import toast from "react-hot-toast";
+import { usePosCartStore, type CustomerInfo } from "@/stores/pos-cart.store";
 import { usePosKeyboard } from "@/hooks/use-pos-keyboard";
 import { formatRupiah, formatNumber } from "@/lib/utils";
 import { api } from "@/lib/api-client";
 import { ItemSearchModal } from "@/components/pos/item-search-modal";
+import { CustomerModal } from "@/components/pos/customer-modal";
 import { TenderModal } from "@/components/pos/tender-modal";
 import { ReceiptPrint, type ReceiptData } from "@/components/pos/receipt-print";
 import {
@@ -20,6 +22,8 @@ import {
   AlertCircle,
   HelpCircle,
   X,
+  Award,
+  RotateCcw,
 } from "lucide-react";
 
 export default function PosPage() {
@@ -30,6 +34,7 @@ export default function PosPage() {
     discountNota,
     taxPercent,
     addItem,
+    setItems,
     updateQty,
     updateDiscount,
     removeItem,
@@ -43,6 +48,7 @@ export default function PosPage() {
 
   const [barcodeInput, setBarcodeInput] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCustomerOpen, setIsCustomerOpen] = useState(false);
   const [isTenderOpen, setIsTenderOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -52,10 +58,10 @@ export default function PosPage() {
 
   // Auto focus input barcode
   useEffect(() => {
-    if (!isSearchOpen && !isTenderOpen && !isHelpOpen) {
+    if (!isSearchOpen && !isCustomerOpen && !isTenderOpen && !isHelpOpen) {
       barcodeInputRef.current?.focus();
     }
-  }, [isSearchOpen, isTenderOpen, isHelpOpen]);
+  }, [isSearchOpen, isCustomerOpen, isTenderOpen, isHelpOpen]);
 
   // Handle Barcode Scan / Submit
   const handleBarcodeSubmit = async (e?: React.FormEvent) => {
@@ -117,9 +123,56 @@ export default function PosPage() {
     }
   };
 
+  // Handle Dynamic Customer Change & Recalculate Cart
+  const handleCustomerSelect = async (newCustomer: CustomerInfo) => {
+    setCustomer(newCustomer);
+
+    // Otomatis hitung ulang harga item di keranjang jika sudah ada barang
+    if (items.length > 0) {
+      const toastId = toast.loading(
+        `Menyesuaikan harga ${items.length} item untuk ${newCustomer.nama}...`
+      );
+      try {
+        const recalculated = await Promise.all(
+          items.map(async (it) => {
+            try {
+              const res = await api.master.resolvePrice({
+                itemCode: it.kodeitem,
+                unit: it.satuan,
+                qty: it.qty,
+                customerCode: newCustomer.kode !== "UMUM" ? newCustomer.kode : undefined,
+              });
+              const newUnitPrice = Number(
+                res?.finalUnitPrice ?? res?.standardUnitPrice ?? it.harga
+              );
+              return {
+                ...it,
+                harga: newUnitPrice,
+                subtotal: it.qty * newUnitPrice - it.potongan,
+              };
+            } catch {
+              return it;
+            }
+          })
+        );
+
+        setItems(recalculated);
+        toast.success(
+          `Pelanggan diubah: ${newCustomer.nama}. Harga ${recalculated.length} barang disesuaikan!`,
+          { id: toastId }
+        );
+      } catch {
+        toast.dismiss(toastId);
+        toast.success(`Pelanggan diset ke ${newCustomer.nama}`);
+      }
+    } else {
+      toast.success(`Pelanggan diset ke ${newCustomer.nama}`);
+    }
+  };
+
   // Keyboard Shortcuts Hook
   usePosKeyboard({
-    enabled: !isSearchOpen && !isTenderOpen && !isHelpOpen,
+    enabled: !isSearchOpen && !isCustomerOpen && !isTenderOpen && !isHelpOpen,
     onF1: () => setIsHelpOpen(true),
     onF2: () => setIsSearchOpen(true),
     onF3: () => {
@@ -147,14 +200,7 @@ export default function PosPage() {
       }
     },
     onF7: () => {
-      const nama = prompt("Nama / Kode Pelanggan Baru:", customer.nama);
-      if (nama) {
-        setCustomer({
-          kode: nama.toUpperCase().replace(/\s+/g, ""),
-          nama: nama.toUpperCase(),
-          grup: "General",
-        });
-      }
+      setIsCustomerOpen(true);
     },
     onF8: () => {
       if (items.length > 0) setIsTenderOpen(true);
@@ -163,7 +209,7 @@ export default function PosPage() {
       if (receiptData) {
         window.print();
       } else {
-        alert("Belum ada transaksi sebelumnya untuk dicetak ulang.");
+        toast.error("Belum ada transaksi sebelumnya untuk dicetak ulang.");
       }
     },
     onDelete: () => {
@@ -278,26 +324,62 @@ export default function PosPage() {
           </button>
         </form>
 
-        <div className="col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-zinc-800 rounded-lg text-emerald-400">
+        <div className="col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 flex items-center justify-between">
+          <div
+            onClick={() => setIsCustomerOpen(true)}
+            className="flex items-center space-x-2.5 truncate cursor-pointer group flex-1"
+            title="Klik atau tekan F7 untuk mengganti pelanggan"
+          >
+            <div className="p-2 bg-zinc-800 group-hover:bg-emerald-950/60 group-hover:text-emerald-400 rounded-xl text-emerald-400 transition shrink-0">
               <User className="w-4 h-4" />
             </div>
-            <div>
-              <div className="text-[10px] text-zinc-400 uppercase font-semibold">Pelanggan [F7]</div>
-              <div className="text-sm font-bold truncate text-white">{customer.nama}</div>
+            <div className="truncate">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-zinc-400 uppercase font-semibold">
+                  Pelanggan [F7]
+                </span>
+                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                  {customer.grup || "General"}
+                </span>
+                {customer.kode !== "UMUM" && (
+                  <span className="flex items-center gap-0.5 text-[9px] bg-amber-950/70 text-amber-300 border border-amber-800/80 px-1.5 py-0.2 rounded font-mono font-bold">
+                    <Award className="w-2.5 h-2.5 text-amber-400" />
+                    <span>{customer.poin || 0} Pts</span>
+                  </span>
+                )}
+              </div>
+              <div className="text-sm font-bold truncate text-white group-hover:text-emerald-300 transition">
+                {customer.nama}
+              </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              const nama = prompt("Nama Pelanggan:", customer.nama);
-              if (nama) setCustomer({ kode: "MEMBER", nama, grup: "General" });
-            }}
-            className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded font-semibold border border-zinc-700"
-          >
-            Ganti
-          </button>
+
+          <div className="flex items-center gap-1.5 shrink-0 pl-2">
+            {customer.kode !== "UMUM" && (
+              <button
+                type="button"
+                onClick={() =>
+                  handleCustomerSelect({
+                    kode: "UMUM",
+                    nama: "PELANGGAN UMUM",
+                    grup: "General",
+                  })
+                }
+                className="text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white px-2 py-1 rounded-lg font-semibold border border-zinc-700 transition"
+                title="Kembalikan ke Pelanggan UMUM"
+              >
+                Reset
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsCustomerOpen(true)}
+              className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold transition shadow-xs"
+              title="Ganti Pelanggan [F7]"
+            >
+              Ganti [F7]
+            </button>
+          </div>
         </div>
       </div>
 
@@ -330,7 +412,8 @@ export default function PosPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm("Kosongkan keranjang belanja kasir?")) clearCart();
+                  clearCart();
+                  toast.success("Keranjang belanja dikosongkan");
                 }}
                 className="text-red-400 hover:text-red-300 text-xs font-semibold"
               >
@@ -524,6 +607,13 @@ export default function PosPage() {
             potongan: 0,
           });
         }}
+      />
+
+      <CustomerModal
+        isOpen={isCustomerOpen}
+        onClose={() => setIsCustomerOpen(false)}
+        onSelectCustomer={handleCustomerSelect}
+        currentCustomerKode={customer.kode}
       />
 
       <TenderModal

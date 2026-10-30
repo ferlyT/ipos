@@ -10,6 +10,7 @@ import { registerOrderRoutes } from "./routes/orders.routes";
 import { registerCashBankRoutes } from "./routes/cash-bank.routes";
 import { registerAccountingRoutes } from "./routes/accounting.routes";
 import { registerWmsRoutes } from "./routes/wms.routes";
+import { registerPeriodRoutes } from "./routes/period.routes";
 
 export function createApiApp(): ApiRouter {
   const router = new ApiRouter();
@@ -95,6 +96,7 @@ export function createApiApp(): ApiRouter {
   registerCashBankRoutes(router);
   registerAccountingRoutes(router);
   registerWmsRoutes(router);
+  registerPeriodRoutes(router);
 
   return router;
 }

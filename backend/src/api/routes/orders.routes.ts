@@ -1,12 +1,16 @@
 import { OrderPromotionService } from "../../services/order-promotion.service";
 import type { ApiRouter } from "../router";
+import { parsePagination, formatPaginatedResponse } from "../pagination";
 
 export function registerOrderRoutes(router: ApiRouter) {
-  // GET /api/orders/outstanding?type=PO|SO - Backlog Pesanan Belum Selesai
+  // GET /api/orders/outstanding?type=PO|SO&page=1&limit=50 - Backlog Pesanan Belum Selesai
   router.get("/api/orders/outstanding", async (ctx) => {
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 25);
     const type = ctx.query.type as "PO" | "SO" | undefined;
     const orders = await OrderPromotionService.getOutstandingOrders(type);
-    return ctx.json(orders);
+    const total = orders.length;
+    const paged = isPaginated ? orders.slice(offset, offset + limit) : orders;
+    return ctx.json(formatPaginatedResponse(paged, total, page, limit, isPaginated));
   });
 
   // POST /api/orders - Buat Purchase Order (PO) atau Sales Order (SO)

@@ -2,10 +2,25 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Store, User, Clock, LayoutDashboard, Monitor } from "lucide-react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/stores/auth.store";
+import { useMounted } from "@/hooks/use-mounted";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Store, User, Clock, LayoutDashboard, Monitor, LogOut } from "lucide-react";
 
 export default function PosLayout({ children }: { children: ReactNode }) {
   const [time, setTime] = useState("");
+  const router = useRouter();
+  const mounted = useMounted();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Berhasil keluar dari sesi kasir");
+    router.push("/login");
+  };
 
   useEffect(() => {
     const update = () => {
@@ -45,10 +60,10 @@ export default function PosLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-1.5 text-xs text-zinc-300 bg-zinc-800/80 px-2.5 py-1 rounded-md border border-zinc-700">
             <User className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Kasir: <strong className="text-white">ADMIN / KASIR-01</strong></span>
+            <span>Kasir: <strong className="text-white">{mounted && user ? user.nama : "KASIR"}</strong></span>
             <span className="text-zinc-500">•</span>
             <span>Shift 1</span>
           </div>
@@ -58,13 +73,25 @@ export default function PosLayout({ children }: { children: ReactNode }) {
             <span className="font-bold text-emerald-400">{time || "00:00:00"}</span>
           </div>
 
+          {/* Multi-Theme Selector */}
+          <ThemeSwitcher />
+
           <Link
             href="/admin/dashboard"
             className="flex items-center space-x-1.5 text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1 rounded-md border border-zinc-700 transition-colors"
           >
             <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Portal Admin</span>
+            <span className="hidden sm:inline">Admin</span>
           </Link>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-1 text-xs font-bold bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 px-2.5 py-1 rounded-md transition"
+            title="Keluar dari Kasir"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Keluar</span>
+          </button>
         </div>
       </header>
 

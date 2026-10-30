@@ -39,12 +39,18 @@ export function registerAuthRoutes(router: ApiRouter) {
       // Hash modern (Argon2 / BCrypt)
       try {
         isPasswordValid = await Bun.password.verify(password, storedPassword);
+        // Fallback case-insensitive untuk kompatibilitas desktop iPos 4.0 (VB.NET Option Compare Text)
+        if (!isPasswordValid) {
+          isPasswordValid =
+            (await Bun.password.verify(password.toLowerCase(), storedPassword).catch(() => false)) ||
+            (await Bun.password.verify(password.toUpperCase(), storedPassword).catch(() => false));
+        }
       } catch {
         isPasswordValid = false;
       }
     } else {
-      // Legacy plaintext iPos 4.0 fallback
-      isPasswordValid = storedPassword === password;
+      // Legacy plaintext iPos 4.0 fallback (case-insensitive sesuai sistem VB.NET iPos 4.0)
+      isPasswordValid = storedPassword === password || storedPassword.toLowerCase() === password.toLowerCase();
 
       // Transparent upgrade ke hash modern jika verifikasi plaintext berhasil
       if (isPasswordValid) {

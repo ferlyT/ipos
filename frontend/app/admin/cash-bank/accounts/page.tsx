@@ -23,7 +23,10 @@ export default function CashBankAccountsPage() {
     setLoading(true);
     try {
       const data = await api.cashBank.getAccounts();
-      setAccounts(data || []);
+      const uniqueData = Array.from(
+        new Map((data || []).map((a: any) => [a.kodeacc, a])).values()
+      );
+      setAccounts(uniqueData);
     } catch (err) {
       console.error("Gagal memuat akun kas & bank:", err);
     } finally {
@@ -150,10 +153,10 @@ export default function CashBankAccountsPage() {
                         {formatRupiah(acc.saldoAwal || 0)}
                       </td>
                       <td className="py-3 px-3 text-right text-emerald-400">
-                        {formatRupiah(acc.totDebet || 0)}
+                        {formatRupiah(acc.totalDebet ?? acc.totDebet ?? 0)}
                       </td>
                       <td className="py-3 px-3 text-right text-red-400">
-                        {formatRupiah(acc.totKredit || 0)}
+                        {formatRupiah(acc.totalKredit ?? acc.totKredit ?? 0)}
                       </td>
                       <td className="py-3 px-4 text-right font-bold text-sm">
                         <span className={isNegative ? "text-red-400 font-extrabold" : "text-white"}>

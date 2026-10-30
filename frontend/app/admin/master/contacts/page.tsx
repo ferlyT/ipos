@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   Users,
   UserPlus,
@@ -25,6 +26,11 @@ export default function ContactsPage() {
   const [contacts, setContacts] = useState<any[]>([]);
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Modal Tambah Kontak State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -41,12 +47,21 @@ export default function ContactsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadContacts = async () => {
+  const loadContacts = async (
+    targetPage: number = page,
+    targetLimit: number = pageSize,
+    targetSearch: string = search,
+    targetTab: "ALL" | "PL" | "SU" = activeTab
+  ) => {
     setLoading(true);
     try {
-      const typeParam = activeTab === "ALL" ? undefined : activeTab;
-      const data = await api.master.getContacts(typeParam, search, 100);
-      setContacts(data || []);
+      const typeParam = targetTab === "ALL" ? undefined : targetTab;
+      const res = await api.master.getContacts(typeParam, targetSearch, targetLimit, targetPage);
+      const paginated = normalizePaginated<any>(res, targetPage, targetLimit);
+      setContacts(paginated.items);
+      setTotalItems(paginated.pagination.total);
+      setTotalPages(paginated.pagination.totalPages);
+      setPage(paginated.pagination.page);
     } catch (err) {
       console.error("Gagal memuat kontak:", err);
     } finally {
@@ -55,12 +70,27 @@ export default function ContactsPage() {
   };
 
   useEffect(() => {
-    loadContacts();
+    setPage(1);
+    loadContacts(1, pageSize, search, activeTab);
   }, [activeTab]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadContacts();
+    setPage(1);
+    loadContacts(1, pageSize, search, activeTab);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadContacts(newPage, pageSize, search, activeTab);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadContacts(1, newSize, search, activeTab);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const openAddModal = () => {
@@ -250,7 +280,7 @@ export default function ContactsPage() {
           />
         </form>
         <button
-          onClick={loadContacts}
+          onClick={() => loadContacts()}
           className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -259,7 +289,15 @@ export default function ContactsPage() {
       </div>
 
       {/* Table of Contacts */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+      <div ref={tableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+        {loading && contacts.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Memuat data kontak...</span>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead className="bg-zinc-800 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-700">
@@ -275,7 +313,7 @@ export default function ContactsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
-              {loading ? (
+              {loading && contacts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-zinc-400">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
@@ -354,6 +392,17 @@ export default function ContactsPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        disabled={loading}
+      />
 
       {/* Modal Tambah Kontak Baru */}
       {isModalOpen && (

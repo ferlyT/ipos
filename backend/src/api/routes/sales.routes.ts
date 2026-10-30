@@ -1,15 +1,18 @@
 import { sql } from "drizzle-orm";
 import { client, db } from "../../db";
 import { ReceivableLoyaltyService } from "../../services/receivable-loyalty.service";
+import { PeriodClosingService } from "../../services/period-closing.service";
 import type { ApiRouter } from "../router";
+import { parsePagination, formatPaginatedResponse } from "../pagination";
 
 const receivableService = new ReceivableLoyaltyService(client);
+const periodService = new PeriodClosingService(client);
 
 export function registerSalesRoutes(router: ApiRouter) {
-  // GET /api/sales/invoices?search=...&limit=50&type=JL|RJ - Daftar Faktur Penjualan & Retur (tbl_ikhd)
+  // GET /api/sales/invoices?search=...&limit=50&type=JL|RJ&page=1 - Daftar Faktur Penjualan & Retur (tbl_ikhd)
   router.get("/api/sales/invoices", async (ctx) => {
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 25);
     const search = ctx.query.search;
-    const limit = ctx.query.limit ? parseInt(ctx.query.limit, 10) : 50;
     const type = ctx.query.type;
 
     let whereClause = sql``;
@@ -20,6 +23,14 @@ export function registerSalesRoutes(router: ApiRouter) {
     } else if (type) {
       whereClause = sql`WHERE ik.tipe = ${type}`;
     }
+
+    const countRes = await db.execute(sql`
+      SELECT COUNT(*)::int AS count
+      FROM tbl_ikhd ik
+      LEFT JOIN tbl_supel sp ON ik.kodesupel = sp.kode
+      ${whereClause};
+    `);
+    const total = Number((countRes[0] as any)?.count || 0);
 
     const invoices = await db.execute(sql`
       SELECT 
@@ -39,10 +50,10 @@ export function registerSalesRoutes(router: ApiRouter) {
       LEFT JOIN tbl_supel sp ON ik.kodesupel = sp.kode
       ${whereClause}
       ORDER BY ik.tanggal DESC
-      LIMIT ${limit};
+      LIMIT ${limit} OFFSET ${offset};
     `);
 
-    return ctx.json(invoices);
+    return ctx.json(formatPaginatedResponse(invoices, total, page, limit, isPaginated));
   });
 
   // GET /api/sales/invoices/detail?notransaksi=... - Detail Faktur Penjualan & Baris Item
@@ -107,6 +118,13 @@ export function registerSalesRoutes(router: ApiRouter) {
     if (!ctx.body) {
       return ctx.error("Payload JSON wajib disediakan", 400);
     }
+    try {
+      if (ctx.body.tanggal) {
+        await periodService.assertPeriodNotClosed(ctx.body.tanggal);
+      }
+    } catch (err: any) {
+      return ctx.error(err.message, 403);
+    }
     const result = await receivableService.createSalesInvoice({
       ...ctx.body,
       tanggal: ctx.body.tanggal || new Date().toISOString(),
@@ -118,6 +136,11 @@ export function registerSalesRoutes(router: ApiRouter) {
   router.post("/api/sales/returns", async (ctx) => {
     if (!ctx.body) {
       return ctx.error("Payload JSON wajib disediakan", 400);
+    }
+    try {
+      await periodService.assertPeriodNotClosed(new Date());
+    } catch (err: any) {
+      return ctx.error(err.message, 403);
     }
     const { refInvoice, kodesupel, items, user = "ADMIN", kodekantor = "UTM" } = ctx.body;
     if (!refInvoice || !items || !Array.isArray(items) || items.length === 0) {

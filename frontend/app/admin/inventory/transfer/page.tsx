@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   Boxes,
   ArrowRightLeft,
@@ -36,17 +37,43 @@ export default function StockTransferPage() {
   const [historyTransfers, setHistoryTransfers] = useState<any[]>([]);
   const [viewingTransfer, setViewingTransfer] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [historyLoading, setHistoryLoading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const historyTableRef = useRef<HTMLDivElement>(null);
 
-  const loadHistory = async () => {
+  const loadHistory = async (targetPage: number = page, targetLimit: number = pageSize) => {
+    setHistoryLoading(true);
     try {
-      const history = await api.inventory.getTransfers("", 20);
-      setHistoryTransfers(history || []);
+      const res = await api.inventory.getTransfers("", targetLimit, targetPage);
+      const paginated = normalizePaginated<any>(res, targetPage, targetLimit);
+      setHistoryTransfers(paginated.items);
+      setTotalItems(paginated.pagination.total);
+      setTotalPages(paginated.pagination.totalPages);
+      setPage(paginated.pagination.page);
     } catch (e) {
       console.error("Gagal memuat histori transfer:", e);
+    } finally {
+      setHistoryLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadHistory(newPage, pageSize);
+    historyTableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadHistory(1, newSize);
+    historyTableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
@@ -394,17 +421,25 @@ export default function StockTransferPage() {
       </form>
 
       {/* Riwayat Mutasi Transfer Antar Gudang */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg mt-8">
+      <div ref={historyTableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg mt-8">
+        {historyLoading && historyTransfers.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Memuat riwayat transfer...</span>
+            </div>
+          </div>
+        )}
         <div className="p-4 bg-zinc-850 border-b border-zinc-800 flex justify-between items-center text-xs">
           <div className="flex items-center space-x-2">
             <History className="w-4 h-4 text-emerald-400" />
             <span className="font-bold text-white">Riwayat Mutasi Antar Gudang Terkini</span>
           </div>
           <button
-            onClick={loadHistory}
+            onClick={() => loadHistory(page, pageSize)}
             className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-bold flex items-center space-x-1 transition-all"
           >
-            <RefreshCw className="w-3 h-3" />
+            <RefreshCw className={`w-3 h-3 ${historyLoading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
           </button>
         </div>
@@ -471,6 +506,18 @@ export default function StockTransferPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        disabled={historyLoading}
+        pageSizeOptions={[10, 20, 50]}
+      />
 
       {/* Printable Transfer Modal */}
       <InvoiceDetailModal

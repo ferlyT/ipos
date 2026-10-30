@@ -2,16 +2,22 @@ import { sql } from "drizzle-orm";
 import { db } from "../../db";
 import { AdvancedMasterService } from "../../services/advanced-master.service";
 import type { ApiRouter } from "../router";
+import { parsePagination, formatPaginatedResponse } from "../pagination";
 
 export function registerMasterRoutes(router: ApiRouter) {
-  // GET /api/master/items?search=...&limit=50 - Cari Item / Master Barang
+  // GET /api/master/items?search=...&limit=50&page=1 - Cari Item / Master Barang
   router.get("/api/master/items", async (ctx) => {
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 25);
     const search = ctx.query.search;
-    const limit = ctx.query.limit ? parseInt(ctx.query.limit, 10) : 50;
 
     const where = search
       ? sql`WHERE it.kodeitem ILIKE ${'%' + search + '%'} OR it.namaitem ILIKE ${'%' + search + '%'}`
       : sql``;
+
+    const countRes = await db.execute(sql`
+      SELECT COUNT(*)::int AS count FROM tbl_item it ${where};
+    `);
+    const total = Number((countRes[0] as any)?.count || 0);
 
     const items = await db.execute(sql`
       SELECT 
@@ -26,10 +32,10 @@ export function registerMasterRoutes(router: ApiRouter) {
       FROM tbl_item it
       ${where}
       ORDER BY it.namaitem ASC
-      LIMIT ${limit};
+      LIMIT ${limit} OFFSET ${offset};
     `);
 
-    return ctx.json(items);
+    return ctx.json(formatPaginatedResponse(items, total, page, limit, isPaginated));
   });
 
   // POST /api/master/items - Tambah Item Barang Baru
@@ -94,14 +100,22 @@ export function registerMasterRoutes(router: ApiRouter) {
     return ctx.json(item);
   });
 
-  // GET /api/master/barcode-catalog?search=...&limit=50 - Katalog Barang untuk Label Barcode & Price Tag
+  // GET /api/master/barcode-catalog?search=...&limit=50&page=1 - Katalog Barang untuk Label Barcode & Price Tag
   router.get("/api/master/barcode-catalog", async (ctx) => {
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 25);
     const search = ctx.query.search;
-    const limit = ctx.query.limit ? parseInt(ctx.query.limit, 10) : 50;
 
     const where = search
       ? sql`WHERE it.kodeitem ILIKE ${'%' + search + '%'} OR it.namaitem ILIKE ${'%' + search + '%'} OR sat.kodebarcode ILIKE ${'%' + search + '%'}`
       : sql``;
+
+    const countRes = await db.execute(sql`
+      SELECT COUNT(*)::int AS count
+      FROM tbl_item it
+      LEFT JOIN tbl_itemsatuanjml sat ON it.kodeitem = sat.kodeitem AND sat.tipe = 'D'
+      ${where};
+    `);
+    const total = Number((countRes[0] as any)?.count || 0);
 
     const items = await db.execute(sql`
       SELECT 
@@ -119,10 +133,10 @@ export function registerMasterRoutes(router: ApiRouter) {
       LEFT JOIN tbl_itemstok stk ON it.kodeitem = stk.kodeitem AND stk.kantor = 'UTM'
       ${where}
       ORDER BY it.namaitem ASC
-      LIMIT ${limit};
+      LIMIT ${limit} OFFSET ${offset};
     `);
 
-    return ctx.json(items);
+    return ctx.json(formatPaginatedResponse(items, total, page, limit, isPaginated));
   });
 
   // GET /api/master/units?itemCode=... - Daftar Multi-Satuan Item
@@ -216,11 +230,11 @@ export function registerMasterRoutes(router: ApiRouter) {
     return ctx.json(groups);
   });
 
-  // GET /api/master/contacts?type=PL|SU&search=...&limit=50 - Daftar Pelanggan & Supplier
+  // GET /api/master/contacts?type=PL|SU&search=...&limit=50&page=1 - Daftar Pelanggan & Supplier
   router.get("/api/master/contacts", async (ctx) => {
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 25);
     const type = ctx.query.type;
     const search = ctx.query.search;
-    const limit = ctx.query.limit ? parseInt(ctx.query.limit, 10) : 50;
 
     let whereClause = sql`WHERE 1=1`;
     if (type) {
@@ -229,6 +243,11 @@ export function registerMasterRoutes(router: ApiRouter) {
     if (search) {
       whereClause = sql`${whereClause} AND (s.kode ILIKE ${'%' + search + '%'} OR s.nama ILIKE ${'%' + search + '%'} OR s.kota ILIKE ${'%' + search + '%'})`;
     }
+
+    const countRes = await db.execute(sql`
+      SELECT COUNT(*)::int AS count FROM tbl_supel s ${whereClause};
+    `);
+    const total = Number((countRes[0] as any)?.count || 0);
 
     const contacts = await db.execute(sql`
       SELECT 
@@ -247,10 +266,10 @@ export function registerMasterRoutes(router: ApiRouter) {
       FROM tbl_supel s
       ${whereClause}
       ORDER BY s.nama ASC
-      LIMIT ${limit};
+      LIMIT ${limit} OFFSET ${offset};
     `);
 
-    return ctx.json(contacts);
+    return ctx.json(formatPaginatedResponse(contacts, total, page, limit, isPaginated));
   });
 
   // POST /api/master/contacts - Tambah Kontak Pelanggan / Supplier Baru

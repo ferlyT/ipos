@@ -15,6 +15,9 @@ export interface CustomerInfo {
   kode: string;
   nama: string;
   grup: string;
+  telepon?: string;
+  alamat?: string;
+  poin?: number;
 }
 
 interface PosCartState {
@@ -26,6 +29,7 @@ interface PosCartState {
   
   // Actions
   addItem: (item: Omit<CartItem, "id" | "subtotal">) => void;
+  setItems: (items: CartItem[]) => void;
   updateQty: (index: number, qty: number) => void;
   updatePrice: (index: number, harga: number) => void;
   updateDiscount: (index: number, potongan: number) => void;
@@ -90,6 +94,13 @@ export const usePosCartStore = create<PosCartState>((set, get) => ({
         selectedIndex: items.length - 1,
       };
     });
+  },
+
+  setItems: (items) => {
+    set((state) => ({
+      items,
+      selectedIndex: Math.max(0, Math.min(state.selectedIndex, items.length - 1)),
+    }));
   },
 
   updateQty: (index, qty) => {

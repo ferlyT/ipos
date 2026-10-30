@@ -35,10 +35,13 @@ export default function CashBankTransactionsPage() {
     async function loadAccounts() {
       try {
         const accs = await api.cashBank.getAccounts();
-        setAccounts(accs || []);
-        if (accs && accs.length >= 2) {
-          setSelectedKasBank(accs[0].kodeacc);
-          setSelectedKasTujuan(accs[1].kodeacc);
+        const uniqueAccs = Array.from(
+          new Map((accs || []).map((a: any) => [a.kodeacc, a])).values()
+        );
+        setAccounts(uniqueAccs);
+        if (uniqueAccs && uniqueAccs.length >= 2) {
+          setSelectedKasBank(uniqueAccs[0].kodeacc);
+          setSelectedKasTujuan(uniqueAccs[1].kodeacc);
         }
       } catch (err) {
         console.error("Gagal memuat akun kas & bank:", err);
@@ -112,7 +115,10 @@ export default function CashBankTransactionsPage() {
       setResult(res);
       // Reload account balances
       const updatedAccs = await api.cashBank.getAccounts();
-      setAccounts(updatedAccs || []);
+      const uniqueUpdated = Array.from(
+        new Map((updatedAccs || []).map((a: any) => [a.kodeacc, a])).values()
+      );
+      setAccounts(uniqueUpdated);
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal memproses transaksi kas/bank.");
     } finally {
@@ -260,8 +266,8 @@ export default function CashBankTransactionsPage() {
                 onChange={(e) => setSelectedKasBank(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-zinc-200 font-mono focus:outline-none focus:border-emerald-500"
               >
-                {accounts.map((acc) => (
-                  <option key={acc.kodeacc} value={acc.kodeacc}>
+                {accounts.map((acc, idx) => (
+                  <option key={`${acc.kodeacc}-${idx}`} value={acc.kodeacc}>
                     {acc.kodeacc} - {acc.namaacc}
                   </option>
                 ))}
@@ -284,8 +290,8 @@ export default function CashBankTransactionsPage() {
                   onChange={(e) => setSelectedKasTujuan(e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-zinc-200 font-mono focus:outline-none focus:border-emerald-500"
                 >
-                  {accounts.map((acc) => (
-                    <option key={acc.kodeacc} value={acc.kodeacc}>
+                  {accounts.map((acc, idx) => (
+                    <option key={`${acc.kodeacc}-${idx}`} value={acc.kodeacc}>
                       {acc.kodeacc} - {acc.namaacc}
                     </option>
                   ))}
@@ -398,11 +404,11 @@ export default function CashBankTransactionsPage() {
           </div>
 
           <div className="space-y-3">
-            {accounts.map((acc) => {
+            {accounts.map((acc, idx) => {
               const saldo = Number(acc.saldoAkhir || acc.saldo || 0);
               return (
                 <div
-                  key={acc.kodeacc}
+                  key={`${acc.kodeacc}-${idx}`}
                   className="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition-all"
                 >
                   <div className="flex justify-between items-center text-xs">

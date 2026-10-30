@@ -197,19 +197,32 @@ export class CashBankService {
    */
   static async listCashBankAccounts(client: any = db): Promise<CashBankAccount[]> {
     const rows = await client.execute(sql`
+      WITH latest_sa AS (
+        SELECT DISTINCT ON (kodeacc) kodeacc, jumlah
+        FROM tbl_acc_sa
+        ORDER BY kodeacc, tanggal DESC
+      ),
+      jurnal_totals AS (
+        SELECT 
+          kodeacc, 
+          COALESCE(SUM(debet::numeric), 0) as total_debet, 
+          COALESCE(SUM(kredit::numeric), 0) as total_kredit
+        FROM tbl_accjurnal
+        GROUP BY kodeacc
+      )
       SELECT 
         p.kodeacc,
         p.namaacc,
         p.kelompok,
         p.tipe,
         COALESCE(sa.jumlah::numeric, 0) as saldo_awal,
-        COALESCE(SUM(j.debet::numeric), 0) as total_debet,
-        COALESCE(SUM(j.kredit::numeric), 0) as total_kredit
+        COALESCE(j.total_debet, 0) as total_debet,
+        COALESCE(j.total_kredit, 0) as total_kredit
       FROM tbl_perkiraan p
-      LEFT JOIN tbl_acc_sa sa ON p.kodeacc = sa.kodeacc
-      LEFT JOIN tbl_accjurnal j ON p.kodeacc = j.kodeacc
-      WHERE p.kasbank = true OR p.kodeacc LIKE '1-11%'
-      GROUP BY p.kodeacc, p.namaacc, p.kelompok, p.tipe, sa.jumlah
+      LEFT JOIN latest_sa sa ON p.kodeacc = sa.kodeacc
+      LEFT JOIN jurnal_totals j ON p.kodeacc = j.kodeacc
+      WHERE p.kodeacc LIKE '1-11%'
+        AND p.tipe = 'D'
       ORDER BY p.kodeacc ASC;
     `);
 

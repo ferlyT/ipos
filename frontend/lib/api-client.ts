@@ -6,6 +6,48 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  pagination: PaginationMeta;
+}
+
+export function normalizePaginated<T>(
+  res: any,
+  defaultPage: number = 1,
+  defaultLimit: number = 25
+): PaginatedResult<T> {
+  if (res && Array.isArray(res.items) && res.pagination) {
+    return res as PaginatedResult<T>;
+  }
+  if (Array.isArray(res)) {
+    return {
+      items: res,
+      pagination: {
+        page: defaultPage,
+        limit: defaultLimit,
+        total: res.length,
+        totalPages: Math.max(1, Math.ceil(res.length / defaultLimit)),
+      },
+    };
+  }
+  return {
+    items: [],
+    pagination: {
+      page: 1,
+      limit: defaultLimit,
+      total: 0,
+      totalPages: 1,
+    },
+  };
+}
+
 export const TOKEN_STORAGE_KEY = "ipos4_auth_token";
 
 export function getAuthToken(): string | null {
@@ -45,7 +87,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     }
     return json.data;
   } catch (err: any) {
-    console.error(`[API Client Error] ${endpoint}:`, err);
+    if (endpoint !== "/api/auth/login") {
+      console.error(`[API Client Error] ${endpoint}:`, err);
+    }
     throw err;
   }
 }
@@ -79,14 +123,22 @@ export const api = {
   system: {
     getHealth: () => request<any>("/api/system/health"),
     getConfig: () => request<any>("/api/system/config"),
-    getUsers: () => request<any[]>("/api/system/users"),
-    getAuditTrail: (params?: { module?: string; search?: string; limit?: number }) => {
+    getUsers: (search: string = "", limit: number = 50, page?: number) => {
+      const q = new URLSearchParams({
+        ...(search ? { search } : {}),
+        limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
+      });
+      return request<any>(`/api/system/users?${q.toString()}`);
+    },
+    getAuditTrail: (params?: { module?: string; search?: string; limit?: number; page?: number }) => {
       const q = new URLSearchParams({
         ...(params?.module ? { module: params.module } : {}),
         ...(params?.search ? { search: params.search } : {}),
         limit: (params?.limit || 100).toString(),
+        ...(params?.page !== undefined ? { page: params.page.toString() } : {}),
       });
-      return request<any[]>(`/api/system/audit-trail?${q.toString()}`);
+      return request<any>(`/api/system/audit-trail?${q.toString()}`);
     },
     getDatabaseStats: () => request<any>("/api/system/database/stats"),
     vacuumDatabase: (table?: string) =>
@@ -127,10 +179,22 @@ export const api = {
       request<any>(`/api/analytics/customers/retention?churnDays=${churnDays}`),
   },
   master: {
-    getItems: (search: string = "", limit: number = 50) =>
-      request<any[]>(`/api/master/items?search=${encodeURIComponent(search)}&limit=${limit}`),
-    getBarcodeCatalog: (search: string = "", limit: number = 50) =>
-      request<any[]>(`/api/master/barcode-catalog?search=${encodeURIComponent(search)}&limit=${limit}`),
+    getItems: (search: string = "", limit: number = 50, page?: number) => {
+      const q = new URLSearchParams({
+        search,
+        limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
+      });
+      return request<any>(`/api/master/items?${q.toString()}`);
+    },
+    getBarcodeCatalog: (search: string = "", limit: number = 50, page?: number) => {
+      const q = new URLSearchParams({
+        search,
+        limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
+      });
+      return request<any>(`/api/master/barcode-catalog?${q.toString()}`);
+    },
     createItem: (payload: {
       kodeitem: string;
       namaitem: string;
@@ -177,13 +241,14 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ parentItemCode, qtyToBuild, officeCode, user }),
       }),
-    getContacts: (type?: "PL" | "SU", search: string = "", limit: number = 50) => {
+    getContacts: (type?: "PL" | "SU", search: string = "", limit: number = 50, page?: number) => {
       const q = new URLSearchParams({
         ...(type ? { type } : {}),
         ...(search ? { search } : {}),
         limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
       });
-      return request<any[]>(`/api/master/contacts?${q.toString()}`);
+      return request<any>(`/api/master/contacts?${q.toString()}`);
     },
     createContact: (payload: {
       kode: string;
@@ -205,16 +270,25 @@ export const api = {
   },
   inventory: {
     getWarehouses: () => request<any[]>("/api/inventory/warehouses"),
-    getTransfers: (search: string = "", limit: number = 50) =>
-      request<any[]>(`/api/inventory/transfers?search=${encodeURIComponent(search)}&limit=${limit}`),
+    getTransfers: (search: string = "", limit: number = 50, page?: number) => {
+      const q = new URLSearchParams({
+        search,
+        limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
+      });
+      return request<any>(`/api/inventory/transfers?${q.toString()}`);
+    },
     getTransferDetail: (notransaksi: string) =>
       request<{ header: any; items: any[] }>(`/api/inventory/transfers/detail?notransaksi=${encodeURIComponent(notransaksi)}`),
-    getStock: (office: string = "UTM", search: string = "") => {
+    getStock: (office: string = "UTM", search: string = "", limit: number = 50, page?: number, negativeOnly?: boolean) => {
       const q = new URLSearchParams({
         office,
         ...(search ? { search } : {}),
+        limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
+        ...(negativeOnly ? { negativeOnly: "true" } : {}),
       });
-      return request<any[]>(`/api/inventory/stock?${q.toString()}`);
+      return request<any>(`/api/inventory/stock?${q.toString()}`);
     },
     getCard: (itemCode: string, office: string = "UTM") =>
       request<any[]>(`/api/inventory/card?itemCode=${encodeURIComponent(itemCode)}&office=${office}`),
@@ -253,7 +327,13 @@ export const api = {
   },
   cashBank: {
     getAccounts: () => request<any[]>("/api/cash-bank/accounts"),
-    getDrawers: (limit: number = 50) => request<any[]>(`/api/cash-bank/drawers?limit=${limit}`),
+    getDrawers: (limit: number = 50, page?: number) => {
+      const q = new URLSearchParams({
+        limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
+      });
+      return request<any>(`/api/cash-bank/drawers?${q.toString()}`);
+    },
     openDrawer: (input: { user: string; modalAwal: number; shift?: number; kodekantor?: string }) =>
       request<any>("/api/cash-bank/drawer/open", {
         method: "POST",
@@ -308,13 +388,14 @@ export const api = {
       }),
   },
   sales: {
-    getInvoices: (search: string = "", limit: number = 50, type?: string) => {
+    getInvoices: (search: string = "", limit: number = 50, type?: string, page?: number) => {
       const q = new URLSearchParams({
         search,
         limit: limit.toString(),
         ...(type ? { type } : {}),
+        ...(page !== undefined ? { page: page.toString() } : {}),
       });
-      return request<any[]>(`/api/sales/invoices?${q.toString()}`);
+      return request<any>(`/api/sales/invoices?${q.toString()}`);
     },
     getInvoiceDetail: (notransaksi: string) =>
       request<{ header: any; items: any[] }>(`/api/sales/invoices/detail?notransaksi=${encodeURIComponent(notransaksi)}`),
@@ -403,13 +484,14 @@ export const api = {
       }),
   },
   purchasing: {
-    getInvoices: (search: string = "", limit: number = 50, type?: string) => {
+    getInvoices: (search: string = "", limit: number = 50, type?: string, page?: number) => {
       const q = new URLSearchParams({
         search,
         limit: limit.toString(),
         ...(type ? { type } : {}),
+        ...(page !== undefined ? { page: page.toString() } : {}),
       });
-      return request<any[]>(`/api/purchasing/invoices?${q.toString()}`);
+      return request<any>(`/api/purchasing/invoices?${q.toString()}`);
     },
     getInvoiceDetail: (notransaksi: string) =>
       request<{ header: any; items: any[] }>(`/api/purchasing/invoices/detail?notransaksi=${encodeURIComponent(notransaksi)}`),
@@ -457,8 +539,14 @@ export const api = {
       }),
   },
   orders: {
-    getOutstanding: (type?: "PO" | "SO") =>
-      request<any[]>(`/api/orders/outstanding${type ? `?type=${type}` : ""}`),
+    getOutstanding: (type?: "PO" | "SO", limit: number = 50, page?: number) => {
+      const q = new URLSearchParams({
+        ...(type ? { type } : {}),
+        limit: limit.toString(),
+        ...(page !== undefined ? { page: page.toString() } : {}),
+      });
+      return request<any>(`/api/orders/outstanding?${q.toString()}`);
+    },
     createOrder: (payload: any) =>
       request<any>("/api/orders", {
         method: "POST",
@@ -493,11 +581,13 @@ export const api = {
       });
       return request<any[]>(`/api/accounting/balance-sheet?${q.toString()}`);
     },
-    getLedger: (accountCode: string, startDate?: string, endDate?: string) => {
+    getLedger: (accountCode: string, startDate?: string, endDate?: string, limit?: number, page?: number) => {
       const q = new URLSearchParams({
         accountCode,
         ...(startDate ? { startDate } : {}),
         ...(endDate ? { endDate } : {}),
+        ...(limit ? { limit: limit.toString() } : {}),
+        ...(page !== undefined ? { page: page.toString() } : {}),
       });
       return request<any>(`/api/accounting/ledger?${q.toString()}`);
     },
@@ -577,5 +667,74 @@ export const api = {
       keterangan?: string;
     }) =>
       request<any>("/api/wms/relocate", { method: "POST", body: JSON.stringify(payload) }),
+  },
+  period: {
+    getStatus: () =>
+      request<{
+        currentMonth: number;
+        currentYear: number;
+        startMonth: number;
+        startYear: number;
+        monthName: string;
+        isYearEnd: boolean;
+        totalRekapRows: number;
+      }>("/api/system/period/status"),
+    getSummary: (month: number, year: number) =>
+      request<{
+        month: number;
+        year: number;
+        salesCount: number;
+        salesTotal: number;
+        purchaseCount: number;
+        purchaseTotal: number;
+        transferCount: number;
+        cashTransactionsCount: number;
+        netProfitEstimate: number;
+      }>(`/api/system/period/summary?month=${month}&year=${year}`),
+    closeMonth: (payload: { month: number; year: number; desdigit?: number; user?: string }) =>
+      request<{
+        success: boolean;
+        message: string;
+        details: {
+          closedMonth: number;
+          closedYear: number;
+          newCurrentMonth: number;
+          newCurrentYear: number;
+          rekapRows: number;
+          fifoOpeningBatches: number;
+        };
+      }>("/api/system/period/close-month", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    closeYear: (payload: { year: number; backupBeforeClosing?: boolean; user?: string }) =>
+      request<{
+        success: boolean;
+        message: string;
+        details: {
+          closedYear: number;
+          newCurrentYear: number;
+          backupPath?: string;
+          netProfit: number;
+          closingJournalTrs?: string;
+          rolledOverAccounts: number;
+        };
+      }>("/api/system/period/close-year", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    getHistory: () =>
+      request<
+        Array<{
+          tahun: number;
+          bulan: number;
+          bulanNama: string;
+          totalSku: number;
+          totalNilaiAwal: number;
+          totalNilaiMasuk: number;
+          totalNilaiKeluar: number;
+          totalNilaiAkhir: number;
+        }>
+      >("/api/system/period/history"),
   },
 };

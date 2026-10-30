@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   Search,
   Package,
@@ -19,6 +20,11 @@ export default function MasterItemsPage() {
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Price Resolver Simulator Modal
   const [simItem, setSimItem] = useState<any | null>(null);
@@ -41,11 +47,19 @@ export default function MasterItemsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadItems = async (q: string = "") => {
+  const loadItems = async (
+    q: string = search,
+    targetPage: number = page,
+    targetLimit: number = pageSize
+  ) => {
     setLoading(true);
     try {
-      const data = await api.master.getItems(q, 50);
-      setItems(data || []);
+      const res = await api.master.getItems(q, targetLimit, targetPage);
+      const paginated = normalizePaginated<any>(res, targetPage, targetLimit);
+      setItems(paginated.items);
+      setTotalItems(paginated.pagination.total);
+      setTotalPages(paginated.pagination.totalPages);
+      setPage(paginated.pagination.page);
     } catch (err) {
       console.error("Gagal memuat katalog barang:", err);
     } finally {
@@ -54,12 +68,26 @@ export default function MasterItemsPage() {
   };
 
   useEffect(() => {
-    loadItems("");
+    loadItems("", 1, pageSize);
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadItems(search);
+    setPage(1);
+    loadItems(search, 1, pageSize);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadItems(search, newPage, pageSize);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadItems(search, 1, newSize);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleSimulatePrice = async () => {
@@ -183,7 +211,15 @@ export default function MasterItemsPage() {
       </div>
 
       {/* Items Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+      <div ref={tableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+        {loading && items.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Memuat data...</span>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead className="bg-zinc-850 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-800">
@@ -199,7 +235,7 @@ export default function MasterItemsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
-              {loading ? (
+              {loading && items.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-zinc-400">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
@@ -245,6 +281,17 @@ export default function MasterItemsPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        disabled={loading}
+      />
 
       {/* Modal Tambah Barang Baru */}
       {isAddOpen && (

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber, formatDate } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   PackageCheck,
   ShoppingBag,
@@ -23,6 +24,11 @@ export default function OrdersBacklogPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Fulfillment Modal State
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
@@ -80,6 +86,20 @@ export default function OrdersBacklogPage() {
       o.kodesupel?.toLowerCase().includes(s)
     );
   });
+
+  const paginatedOrders = filteredOrders.slice((page - 1) * pageSize, page * pageSize);
+  const totalPagesCount = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const openFulfillModal = (order: any) => {
     setSelectedOrder(order);
@@ -364,7 +384,15 @@ export default function OrdersBacklogPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+      <div ref={tableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+        {loading && orders.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Memuat backlog pesanan...</span>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead className="bg-zinc-800 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-700">
@@ -383,21 +411,21 @@ export default function OrdersBacklogPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
-              {loading ? (
+              {loading && orders.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="py-8 text-center text-zinc-400">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
                     Memuat data pesanan...
                   </td>
                 </tr>
-              ) : filteredOrders.length === 0 ? (
+              ) : paginatedOrders.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="py-8 text-center text-zinc-400">
                     Tidak ada backlog pesanan yang sesuai filter.
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((ord: any) => {
+                paginatedOrders.map((ord: any) => {
                   const isSO = ord.tipe === "SO";
                   return (
                     <tr key={ord.notransaksi} className="hover:bg-zinc-800/40 text-zinc-300">
@@ -477,6 +505,17 @@ export default function OrdersBacklogPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPagesCount}
+        pageSize={pageSize}
+        totalItems={filteredOrders.length}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        disabled={loading}
+      />
 
       {/* Modal Buat Pesanan Baru (PO & SO) */}
       {isNewOrderOpen && (

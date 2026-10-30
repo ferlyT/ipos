@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import { formatNumber, formatDateTime } from "@/lib/utils";
 import {
@@ -67,11 +68,12 @@ export default function WmsTasksPage() {
       } else {
         await api.wms.createOutboundFromSales(createInvoiceNo.trim());
       }
+      toast.success(activeTab === "INBOUND" ? "Tugas penerimaan (Inbound) berhasil diterbitkan!" : "Tugas pengambilan (Outbound) berhasil diterbitkan!");
       setShowCreateModal(false);
       setCreateInvoiceNo("");
       loadTasks();
     } catch (err: any) {
-      alert(err.message || "Gagal membuat tugas WMS");
+      toast.error(err.message || "Gagal membuat tugas WMS");
     } finally {
       setCreating(false);
     }

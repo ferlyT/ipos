@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber, formatDateTime } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   WalletCards,
   Lock,
@@ -25,6 +26,11 @@ export default function CashDrawersPage() {
   const [shifts, setShifts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Modal Open Drawer State
   const [isOpenModalActive, setIsOpenModalActive] = useState<boolean>(false);
@@ -42,11 +48,15 @@ export default function CashDrawersPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const loadShifts = async () => {
+  const loadShifts = async (targetPage: number = page, targetLimit: number = pageSize) => {
     setLoading(true);
     try {
-      const data = await api.cashBank.getDrawers(50);
-      setShifts(data || []);
+      const res = await api.cashBank.getDrawers(targetLimit, targetPage);
+      const paginated = normalizePaginated<any>(res, targetPage, targetLimit);
+      setShifts(paginated.items);
+      setTotalItems(paginated.pagination.total);
+      setTotalPages(paginated.pagination.totalPages);
+      setPage(paginated.pagination.page);
     } catch (err: any) {
       console.error("Gagal memuat sesi kasir:", err);
       setErrorMsg(err.message || "Gagal memuat sesi kasir.");
@@ -56,8 +66,21 @@ export default function CashDrawersPage() {
   };
 
   useEffect(() => {
-    loadShifts();
+    loadShifts(1, pageSize);
   }, []);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadShifts(newPage, pageSize);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadShifts(1, newSize);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const handleOpenDrawer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +188,7 @@ export default function CashDrawersPage() {
           </button>
 
           <button
-            onClick={loadShifts}
+            onClick={() => loadShifts()}
             disabled={loading}
             className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all"
           >
@@ -237,7 +260,15 @@ export default function CashDrawersPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-zinc-800">
+        <div ref={tableRef} className="relative overflow-x-auto rounded-xl border border-zinc-800">
+          {loading && shifts.length > 0 && (
+            <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+              <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+                <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+                <span>Memuat sesi shift...</span>
+              </div>
+            </div>
+          )}
           <table className="w-full text-xs text-left">
             <thead className="bg-zinc-800 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-700">
               <tr>
@@ -339,6 +370,18 @@ export default function CashDrawersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Component */}
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          disabled={loading}
+          className="mt-4"
+        />
       </div>
 
       {/* Modal: Buka Shift Kasir Baru */}

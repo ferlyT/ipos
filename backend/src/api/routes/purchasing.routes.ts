@@ -1,15 +1,18 @@
 import { sql } from "drizzle-orm";
 import { client, db } from "../../db";
 import { PurchasingPayableService } from "../../services/purchasing-payable.service";
+import { PeriodClosingService } from "../../services/period-closing.service";
 import type { ApiRouter } from "../router";
+import { parsePagination, formatPaginatedResponse } from "../pagination";
 
 const purchasingService = new PurchasingPayableService(client);
+const periodService = new PeriodClosingService(client);
 
 export function registerPurchasingRoutes(router: ApiRouter) {
-  // GET /api/purchasing/invoices?search=...&limit=50&type=BL|RB - Daftar Faktur Pembelian & Retur (tbl_imhd)
+  // GET /api/purchasing/invoices?search=...&limit=50&type=BL|RB&page=1 - Daftar Faktur Pembelian & Retur (tbl_imhd)
   router.get("/api/purchasing/invoices", async (ctx) => {
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 25);
     const search = ctx.query.search;
-    const limit = ctx.query.limit ? parseInt(ctx.query.limit, 10) : 50;
     const type = ctx.query.type;
 
     let whereClause = sql``;
@@ -20,6 +23,14 @@ export function registerPurchasingRoutes(router: ApiRouter) {
     } else if (type) {
       whereClause = sql`WHERE im.tipe = ${type}`;
     }
+
+    const countRes = await db.execute(sql`
+      SELECT COUNT(*)::int AS count
+      FROM tbl_imhd im
+      LEFT JOIN tbl_supel sp ON im.kodesupel = sp.kode
+      ${whereClause};
+    `);
+    const total = Number((countRes[0] as any)?.count || 0);
 
     const invoices = await db.execute(sql`
       SELECT 
@@ -39,10 +50,10 @@ export function registerPurchasingRoutes(router: ApiRouter) {
       LEFT JOIN tbl_supel sp ON im.kodesupel = sp.kode
       ${whereClause}
       ORDER BY im.tanggal DESC
-      LIMIT ${limit};
+      LIMIT ${limit} OFFSET ${offset};
     `);
 
-    return ctx.json(invoices);
+    return ctx.json(formatPaginatedResponse(invoices, total, page, limit, isPaginated));
   });
 
   // GET /api/purchasing/invoices/detail?notransaksi=... - Detail Faktur Pembelian & Baris Item
@@ -106,6 +117,11 @@ export function registerPurchasingRoutes(router: ApiRouter) {
   router.post("/api/purchasing/returns", async (ctx) => {
     if (!ctx.body) {
       return ctx.error("Payload JSON wajib disediakan", 400);
+    }
+    try {
+      await periodService.assertPeriodNotClosed(new Date());
+    } catch (err: any) {
+      return ctx.error(err.message, 403);
     }
     const { refInvoice, kodesupel, items, user = "ADMIN", kodekantor = "UTM" } = ctx.body;
     if (!refInvoice || !items || !Array.isArray(items) || items.length === 0) {
@@ -224,6 +240,12 @@ export function registerPurchasingRoutes(router: ApiRouter) {
   router.post("/api/purchasing/payables/pay", async (ctx) => {
     if (!ctx.body) {
       return ctx.error("Payload JSON wajib disediakan", 400);
+    }
+    try {
+      const payDate = ctx.body.tanggal ? new Date(ctx.body.tanggal) : new Date();
+      await periodService.assertPeriodNotClosed(payDate);
+    } catch (err: any) {
+      return ctx.error(err.message, 403);
     }
     const result = await purchasingService.paySupplierDebt({
       ...ctx.body,

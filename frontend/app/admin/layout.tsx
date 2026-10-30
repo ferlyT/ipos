@@ -2,7 +2,11 @@
 
 import { type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/stores/auth.store";
+import { useMounted } from "@/hooks/use-mounted";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import {
   LayoutDashboard,
   Package,
@@ -32,6 +36,8 @@ import {
   Layers,
   ClipboardList,
   MapPin,
+  CalendarSync,
+  LogOut,
 } from "lucide-react";
 
 const NAV_GROUPS = [
@@ -79,6 +85,7 @@ const NAV_GROUPS = [
   {
     group: "Sistem & Konfigurasi",
     items: [
+      { href: "/admin/system/period-closing", label: "Tutup Buku & Periode", icon: CalendarSync },
       { href: "/admin/system/users", label: "Pengguna & Server", icon: UserCheck },
       { href: "/admin/system/roles", label: "Hak Akses & Role Matrix", icon: ShieldCheck },
       { href: "/admin/system/audit", label: "Jejak Audit Forensik", icon: ShieldAlert },
@@ -90,6 +97,16 @@ const NAV_GROUPS = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const mounted = useMounted();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Berhasil keluar dari sesi");
+    router.push("/login");
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans antialiased">
@@ -154,17 +171,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
         {/* User Footer */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex items-center justify-between text-xs text-zinc-400">
-          <div className="flex items-center space-x-2">
-            <UserCheck className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center space-x-2 truncate">
+            <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <div className="truncate">
-              <div className="font-bold text-white leading-tight">ADMIN</div>
-              <div className="text-[10px] text-zinc-400 font-mono">Superuser</div>
+              <div className="font-bold text-white leading-tight truncate" suppressHydrationWarning>
+                {mounted && user ? user.nama : "ADMIN"}
+              </div>
+              <div className="text-[10px] text-zinc-400 font-mono" suppressHydrationWarning>
+                {mounted && user ? user.role : "Superuser"}
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-1.5" role="status" aria-label="Status database: Terhubung">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="sr-only">Database Terhubung</span>
-          </div>
+          <button
+            onClick={handleLogout}
+            className="p-1.5 text-zinc-400 hover:text-rose-400 rounded-lg hover:bg-zinc-800 transition"
+            title="Keluar (Logout)"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </aside>
 
@@ -181,8 +205,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
           <div className="flex items-center space-x-3 text-xs">
             <span className="bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-md border border-zinc-700 font-mono font-semibold">
-              Kantor: UTM (Pusat)
+              Kantor: {mounted && user?.kantor ? user.kantor : "UTM"}
             </span>
+
+            {/* Multi-Theme Selector */}
+            <ThemeSwitcher />
+
+            {/* Logout button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 transition text-xs font-semibold"
+              title="Logout dari Sesi"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </header>
 

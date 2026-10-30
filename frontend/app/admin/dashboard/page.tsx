@@ -247,7 +247,7 @@ export default function AdminDashboardPage() {
           <div className="bg-red-950/40 border border-red-800/80 rounded-xl p-4 flex items-center space-x-3">
             <AlertTriangle className="w-6 h-6 text-red-400 shrink-0" />
             <div>
-              <div className="text-xs font-bold text-red-200">Total Modal Mengendap Tanpa Penjualan 2026:</div>
+              <div className="text-xs font-bold text-red-300">Total Modal Mengendap Tanpa Penjualan (2026)</div>
               <div className="text-xl font-black text-white font-mono mt-0.5">
                 {formatRupiah(abcData?.totalDeadStockCapital ?? 0)}
               </div>

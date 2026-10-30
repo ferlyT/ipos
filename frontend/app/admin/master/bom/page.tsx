@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import { formatRupiah, formatNumber } from "@/lib/utils";
 import {
@@ -142,11 +143,11 @@ export default function AssemblyBOMPage() {
 
   const handleSaveRecipe = async () => {
     if (!newParentCode) {
-      alert("Pilih barang jadi hasil rakitan!");
+      toast.error("Pilih barang jadi hasil rakitan!");
       return;
     }
     if (newComponents.length === 0) {
-      alert("Tambahkan minimal 1 bahan baku komponen!");
+      toast.error("Tambahkan minimal 1 bahan baku komponen!");
       return;
     }
 
@@ -156,13 +157,14 @@ export default function AssemblyBOMPage() {
         parentItemCode: newParentCode,
         components: newComponents,
       });
+      toast.success("Formula rakitan berhasil disimpan!");
       setIsNewRecipeModalOpen(false);
       setNewParentCode("");
       setNewComponents([]);
       await loadRecipes();
       setSelectedParentCode(newParentCode);
     } catch (err: any) {
-      alert("Gagal menyimpan formula rakitan: " + (err.message || err));
+      toast.error("Gagal menyimpan formula rakitan: " + (err.message || err));
     } finally {
       setSavingRecipe(false);
     }

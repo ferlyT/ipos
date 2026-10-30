@@ -1,28 +1,479 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #09090b;
+  --foreground: #ededed;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* 1. Theme Dark Slate (Default Enterprise) */
+html.theme-dark-slate,
+[data-theme="dark-slate"] {
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  background-color: #09090b;
+  color: #f4f4f5;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 2. Theme Midnight Blue (Deep Corporate Navy) */
+html.theme-midnight-blue,
+[data-theme="midnight-blue"] {
+  --background: #070d1e;
+  --foreground: #f0f6fc;
+  background-color: #070d1e;
+  color: #f0f6fc;
+}
+
+html.theme-midnight-blue aside {
+  background-color: #091126 !important;
+  border-color: #1a2a54 !important;
+}
+
+html.theme-midnight-blue header {
+  background-color: #0c1630 !important;
+  border-color: #1a2a54 !important;
+}
+
+html.theme-midnight-blue aside nav a.bg-zinc-800 {
+  background-color: #142245 !important;
+  color: #38bdf8 !important;
+  border-left-color: #38bdf8 !important;
+}
+
+html.theme-midnight-blue .bg-slate-950,
+html.theme-midnight-blue .bg-zinc-950 {
+  background-color: #050914 !important;
+}
+
+html.theme-midnight-blue .bg-slate-900,
+html.theme-midnight-blue .bg-zinc-900 {
+  background-color: #0c1630 !important;
+}
+
+html.theme-midnight-blue .bg-zinc-850,
+html.theme-midnight-blue .bg-zinc-800,
+html.theme-midnight-blue .bg-slate-800 {
+  background-color: #132247 !important;
+}
+
+html.theme-midnight-blue .border-slate-800,
+html.theme-midnight-blue .border-zinc-800 {
+  border-color: #1a2a54 !important;
+}
+
+html.theme-midnight-blue .border-zinc-700 {
+  border-color: #243b75 !important;
+}
+
+/* 3. Theme Emerald POS (Retail Green Energy) */
+html.theme-emerald-pos,
+[data-theme="emerald-pos"] {
+  --background: #03140e;
+  --foreground: #ecfdf5;
+  background-color: #03140e;
+  color: #ecfdf5;
+}
+
+html.theme-emerald-pos aside {
+  background-color: #041a12 !important;
+  border-color: #0e4432 !important;
+}
+
+html.theme-emerald-pos header {
+  background-color: #062319 !important;
+  border-color: #0e4432 !important;
+}
+
+html.theme-emerald-pos aside nav a.bg-zinc-800 {
+  background-color: #0b3929 !important;
+  color: #34d399 !important;
+  border-left-color: #10b981 !important;
+}
+
+html.theme-emerald-pos .bg-slate-950,
+html.theme-emerald-pos .bg-zinc-950 {
+  background-color: #020d09 !important;
+}
+
+html.theme-emerald-pos .bg-slate-900,
+html.theme-emerald-pos .bg-zinc-900 {
+  background-color: #062319 !important;
+}
+
+html.theme-emerald-pos .bg-zinc-850,
+html.theme-emerald-pos .bg-zinc-800,
+html.theme-emerald-pos .bg-slate-800 {
+  background-color: #0b3929 !important;
+}
+
+html.theme-emerald-pos .border-slate-800,
+html.theme-emerald-pos .border-zinc-800 {
+  border-color: #0e4432 !important;
+}
+
+html.theme-emerald-pos .border-zinc-700 {
+  border-color: #145942 !important;
+}
+
+/* 4. Theme Light Clean (Crisp Day Mode) */
+html.theme-light-clean,
+[data-theme="light-clean"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Chrome: Sidebar & Header */
+html.theme-light-clean aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light-clean header {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light-clean aside nav a {
+  color: #475569 !important;
+}
+
+html.theme-light-clean aside nav a:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light-clean aside nav a.bg-zinc-800 {
+  background-color: #ecfdf5 !important;
+  color: #047857 !important;
+  border-left-color: #10b981 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.theme-light-clean aside > div:last-child {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Main Cards & Surfaces */
+html.theme-light-clean .bg-slate-950,
+html.theme-light-clean .bg-zinc-950 {
+  background-color: #ffffff !important;
+}
+
+html.theme-light-clean .bg-slate-900,
+html.theme-light-clean .bg-zinc-900 {
+  background-color: #ffffff !important;
+}
+
+html.theme-light-clean .bg-zinc-850,
+html.theme-light-clean .bg-zinc-800,
+html.theme-light-clean .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
+html.theme-light-clean .bg-zinc-900\/40,
+html.theme-light-clean .bg-zinc-900\/50,
+html.theme-light-clean .bg-zinc-900\/60,
+html.theme-light-clean .bg-zinc-900\/80,
+html.theme-light-clean .bg-slate-900\/40,
+html.theme-light-clean .bg-slate-900\/80 {
+  background-color: #ffffff !important;
+}
+
+html.theme-light-clean .bg-zinc-950\/50,
+html.theme-light-clean .bg-zinc-950\/80,
+html.theme-light-clean .bg-zinc-950\/90,
+html.theme-light-clean .bg-zinc-950\/95,
+html.theme-light-clean .bg-slate-950\/95 {
+  background-color: #ffffff !important;
+}
+
+html.theme-light-clean .bg-zinc-800\/30,
+html.theme-light-clean .bg-zinc-800\/40,
+html.theme-light-clean .bg-zinc-800\/50,
+html.theme-light-clean .bg-zinc-800\/60,
+html.theme-light-clean .bg-zinc-800\/80 {
+  background-color: #f8fafc !important;
+}
+
+/* Borders */
+html.theme-light-clean .border-slate-800,
+html.theme-light-clean .border-slate-800\/90,
+html.theme-light-clean .border-slate-800\/80,
+html.theme-light-clean .border-zinc-800,
+html.theme-light-clean .border-zinc-800\/80,
+html.theme-light-clean .border-zinc-800\/60,
+html.theme-light-clean .border-zinc-800\/40 {
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light-clean .border-zinc-700,
+html.theme-light-clean .border-zinc-700\/60,
+html.theme-light-clean .border-zinc-700\/40 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Table Dividers */
+html.theme-light-clean .divide-zinc-800,
+html.theme-light-clean .divide-zinc-800\/80,
+html.theme-light-clean .divide-zinc-800\/60,
+html.theme-light-clean .divide-zinc-800\/40,
+html.theme-light-clean .divide-slate-800,
+html.theme-light-clean .divide-slate-800\/80,
+html.theme-light-clean .divide-zinc-800 > :not([hidden]) ~ :not([hidden]),
+html.theme-light-clean .divide-zinc-800\/60 > :not([hidden]) ~ :not([hidden]),
+html.theme-light-clean .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #f1f5f9 !important;
+}
+
+/* Status: Emerald / Success */
+html.theme-light-clean .bg-emerald-950,
+html.theme-light-clean .bg-emerald-950\/80,
+html.theme-light-clean .bg-emerald-950\/70,
+html.theme-light-clean .bg-emerald-950\/60,
+html.theme-light-clean .bg-emerald-950\/40,
+html.theme-light-clean .bg-emerald-950\/20,
+html.theme-light-clean .bg-emerald-950\/10,
+html.theme-light-clean .bg-emerald-600\/30,
+html.theme-light-clean .bg-emerald-600\/20,
+html.theme-light-clean .bg-emerald-500\/10 {
+  background-color: #ecfdf5 !important;
+}
+
+html.theme-light-clean .border-emerald-800,
+html.theme-light-clean .border-emerald-800\/80,
+html.theme-light-clean .border-emerald-800\/60,
+html.theme-light-clean .border-emerald-800\/40,
+html.theme-light-clean .border-emerald-700,
+html.theme-light-clean .border-emerald-600,
+html.theme-light-clean .border-emerald-600\/80,
+html.theme-light-clean .border-emerald-600\/40,
+html.theme-light-clean .border-emerald-600\/30,
+html.theme-light-clean .border-emerald-500\/80,
+html.theme-light-clean .border-emerald-500\/60,
+html.theme-light-clean .border-emerald-500\/50,
+html.theme-light-clean .border-emerald-500\/40,
+html.theme-light-clean .border-emerald-500\/20 {
+  border-color: #a7f3d0 !important;
+}
+
+html.theme-light-clean :not(button):not(.bg-emerald-600 *):not(.bg-emerald-500 *).text-emerald-400,
+html.theme-light-clean :not(button):not(.bg-emerald-600 *):not(.bg-emerald-500 *).text-emerald-500\/80,
+html.theme-light-clean :not(button):not(.bg-emerald-600 *):not(.bg-emerald-500 *).text-emerald-300,
+html.theme-light-clean :not(button):not(.bg-emerald-600 *):not(.bg-emerald-500 *).text-emerald-200 {
+  color: #047857 !important;
+}
+
+/* Status: Red / Rose / Danger */
+html.theme-light-clean .bg-red-950,
+html.theme-light-clean .bg-red-950\/90,
+html.theme-light-clean .bg-red-950\/80,
+html.theme-light-clean .bg-red-950\/70,
+html.theme-light-clean .bg-red-950\/60,
+html.theme-light-clean .bg-red-950\/50,
+html.theme-light-clean .bg-red-950\/40,
+html.theme-light-clean .bg-red-950\/30,
+html.theme-light-clean .bg-red-950\/20,
+html.theme-light-clean .bg-red-950\/10,
+html.theme-light-clean .bg-rose-950,
+html.theme-light-clean .bg-rose-950\/90,
+html.theme-light-clean .bg-rose-950\/80,
+html.theme-light-clean .bg-rose-950\/70,
+html.theme-light-clean .bg-rose-950\/60,
+html.theme-light-clean .bg-rose-950\/50,
+html.theme-light-clean .bg-rose-950\/40,
+html.theme-light-clean .bg-rose-950\/30,
+html.theme-light-clean .bg-rose-950\/20,
+html.theme-light-clean .bg-rose-950\/10,
+html.theme-light-clean .bg-rose-900\/60,
+html.theme-light-clean .bg-rose-600\/30,
+html.theme-light-clean .bg-rose-600\/20,
+html.theme-light-clean .bg-rose-500\/20 {
+  background-color: #fff1f2 !important;
+}
+
+html.theme-light-clean .border-red-800,
+html.theme-light-clean .border-red-800\/90,
+html.theme-light-clean .border-red-800\/80,
+html.theme-light-clean .border-red-800\/70,
+html.theme-light-clean .border-red-800\/60,
+html.theme-light-clean .border-red-800\/50,
+html.theme-light-clean .border-red-800\/40,
+html.theme-light-clean .border-rose-800,
+html.theme-light-clean .border-rose-800\/80,
+html.theme-light-clean .border-rose-800\/60,
+html.theme-light-clean .border-rose-800\/40,
+html.theme-light-clean .border-rose-600,
+html.theme-light-clean .border-rose-500\/80,
+html.theme-light-clean .border-rose-500\/40,
+html.theme-light-clean .border-rose-500\/30 {
+  border-color: #fecdd3 !important;
+}
+
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-red-400,
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-red-300,
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-red-200,
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-red-100,
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-rose-400,
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-rose-300,
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-rose-200,
+html.theme-light-clean :not(button):not(.bg-rose-600 *):not(.bg-red-600 *).text-rose-100 {
+  color: #be123c !important;
+}
+
+/* Status: Amber / Warning */
+html.theme-light-clean .bg-amber-950,
+html.theme-light-clean .bg-amber-950\/80,
+html.theme-light-clean .bg-amber-950\/70,
+html.theme-light-clean .bg-amber-950\/60,
+html.theme-light-clean .bg-amber-950\/40,
+html.theme-light-clean .bg-amber-600\/30,
+html.theme-light-clean .bg-amber-600\/20,
+html.theme-light-clean .bg-amber-500\/20,
+html.theme-light-clean .bg-amber-500\/5 {
+  background-color: #fffbeb !important;
+}
+
+html.theme-light-clean .border-amber-800,
+html.theme-light-clean .border-amber-800\/80,
+html.theme-light-clean .border-amber-800\/60,
+html.theme-light-clean .border-amber-900\/40,
+html.theme-light-clean .border-amber-600\/40,
+html.theme-light-clean .border-amber-500\/80,
+html.theme-light-clean .border-amber-500\/40,
+html.theme-light-clean .border-amber-500\/30 {
+  border-color: #fde68a !important;
+}
+
+html.theme-light-clean :not(button):not(.bg-amber-600 *).text-amber-400,
+html.theme-light-clean :not(button):not(.bg-amber-600 *).text-amber-400\/80,
+html.theme-light-clean :not(button):not(.bg-amber-600 *).text-amber-300,
+html.theme-light-clean :not(button):not(.bg-amber-600 *).text-amber-200,
+html.theme-light-clean :not(button):not(.bg-amber-600 *).text-amber-100 {
+  color: #b45309 !important;
+}
+
+/* Status: Indigo / Purple / Blue */
+html.theme-light-clean .bg-indigo-950,
+html.theme-light-clean .bg-indigo-950\/80,
+html.theme-light-clean .bg-indigo-950\/40,
+html.theme-light-clean .bg-blue-950,
+html.theme-light-clean .bg-blue-950\/80,
+html.theme-light-clean .bg-blue-950\/70,
+html.theme-light-clean .bg-blue-600\/30,
+html.theme-light-clean .bg-blue-600\/20,
+html.theme-light-clean .bg-blue-500\/20,
+html.theme-light-clean .bg-blue-500\/10,
+html.theme-light-clean .bg-purple-950,
+html.theme-light-clean .bg-purple-950\/40,
+html.theme-light-clean .bg-purple-900\/60,
+html.theme-light-clean .bg-purple-600\/30,
+html.theme-light-clean .bg-purple-600\/20,
+html.theme-light-clean .bg-purple-500\/20,
+html.theme-light-clean .bg-purple-500\/10 {
+  background-color: #eef2ff !important;
+}
+
+html.theme-light-clean .border-indigo-800,
+html.theme-light-clean .border-indigo-800\/80,
+html.theme-light-clean .border-blue-800,
+html.theme-light-clean .border-blue-800\/80,
+html.theme-light-clean .border-blue-800\/60,
+html.theme-light-clean .border-blue-500\/40,
+html.theme-light-clean .border-blue-500\/30,
+html.theme-light-clean .border-blue-500\/20,
+html.theme-light-clean .border-purple-800,
+html.theme-light-clean .border-purple-800\/60,
+html.theme-light-clean .border-purple-500\/40,
+html.theme-light-clean .border-purple-500\/30,
+html.theme-light-clean .border-purple-500\/20,
+html.theme-light-clean .border-purple-400\/40 {
+  border-color: #c7d2fe !important;
+}
+
+html.theme-light-clean :not(button):not(.bg-indigo-600 *).text-indigo-400,
+html.theme-light-clean :not(button):not(.bg-indigo-600 *).text-indigo-300,
+html.theme-light-clean :not(button):not(.bg-blue-600 *).text-blue-400,
+html.theme-light-clean :not(button):not(.bg-blue-600 *).text-blue-300,
+html.theme-light-clean :not(button):not(.bg-blue-600 *).text-blue-200,
+html.theme-light-clean :not(button):not(.bg-blue-600 *).text-blue-500\/80,
+html.theme-light-clean :not(button):not(.bg-blue-600 *).text-blue-500\/50,
+html.theme-light-clean :not(button):not(.bg-purple-600 *).text-purple-400,
+html.theme-light-clean :not(button):not(.bg-purple-600 *).text-purple-400\/80,
+html.theme-light-clean :not(button):not(.bg-purple-600 *).text-purple-300,
+html.theme-light-clean :not(button):not(.bg-purple-600 *).text-purple-200 {
+  color: #4338ca !important;
+}
+
+/* Form Controls */
+html.theme-light-clean input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+html.theme-light-clean select,
+html.theme-light-clean textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light-clean input::placeholder,
+html.theme-light-clean textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Tables */
+html.theme-light-clean thead {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+html.theme-light-clean tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Text Colors */
+html.theme-light-clean :not(button):not(.bg-emerald-600 *):not(.bg-emerald-500 *):not(.bg-rose-600 *):not(.bg-indigo-600 *):not(.bg-blue-600 *):not(.bg-amber-600 *).text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light-clean .text-slate-100,
+html.theme-light-clean .text-slate-200,
+html.theme-light-clean .text-zinc-100,
+html.theme-light-clean .text-zinc-200 {
+  color: #1e293b !important;
+}
+
+html.theme-light-clean .text-slate-300,
+html.theme-light-clean .text-zinc-300 {
+  color: #334155 !important;
+}
+
+html.theme-light-clean .text-slate-400,
+html.theme-light-clean .text-zinc-400 {
+  color: #64748b !important;
+}
+
+/* Specific Grand Total Banner Overrides */
+html.theme-light-clean .promo-total-banner {
+  background: linear-gradient(to right, #ecfdf5, #f0fdf4, #ffffff) !important;
+  border-color: #a7f3d0 !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.08) !important;
+}
+
+html.theme-light-clean .promo-total-label {
+  color: #065f46 !important;
+}
+
+html.theme-light-clean .promo-total-value {
+  color: #059669 !important;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Print Media Styles untuk Struk Kasir Thermal (58mm/80mm) */

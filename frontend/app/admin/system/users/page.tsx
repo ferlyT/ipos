@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatDate } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   Users,
   ShieldCheck,
@@ -16,21 +17,36 @@ import {
   HardDrive,
   Cpu,
   Clock,
+  Search,
 } from "lucide-react";
 
 export default function SystemUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [health, setHealth] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [search, setSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const tableRef = useRef<HTMLDivElement>(null);
 
-  const loadData = async () => {
+  const loadData = async (
+    targetPage: number = page,
+    targetLimit: number = pageSize,
+    targetSearch: string = search
+  ) => {
     setLoading(true);
     try {
-      const [u, h] = await Promise.all([
-        api.system.getUsers(),
+      const [uRes, h] = await Promise.all([
+        api.system.getUsers(targetSearch, targetLimit, targetPage),
         api.system.getHealth(),
       ]);
-      setUsers(u || []);
+      const paginated = normalizePaginated<any>(uRes, targetPage, targetLimit);
+      setUsers(paginated.items);
+      setTotalItems(paginated.pagination.total);
+      setTotalPages(paginated.pagination.totalPages);
+      setPage(paginated.pagination.page);
       setHealth(h || null);
     } catch (err) {
       console.error("Gagal memuat status sistem:", err);
@@ -40,8 +56,27 @@ export default function SystemUsersPage() {
   };
 
   useEffect(() => {
-    loadData();
+    loadData(1, pageSize, "");
   }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    loadData(1, pageSize, search);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadData(newPage, pageSize, search);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadData(1, newSize, search);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="space-y-6">
@@ -57,7 +92,7 @@ export default function SystemUsersPage() {
           </p>
         </div>
         <button
-          onClick={loadData}
+          onClick={() => loadData()}
           className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all self-start md:self-auto"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -118,14 +153,43 @@ export default function SystemUsersPage() {
         </div>
       )}
 
+      {/* Search Bar */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari user ID (username) atau nama operator..."
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition-all"
+          />
+        </form>
+        <button
+          onClick={() => loadData(page, pageSize, search)}
+          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          <span>Refresh</span>
+        </button>
+      </div>
+
       {/* Users Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+      <div ref={tableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+        {loading && users.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Memuat data pengguna...</span>
+            </div>
+          </div>
+        )}
         <div className="p-4 bg-zinc-850 border-b border-zinc-800 flex justify-between items-center text-xs">
           <span className="font-bold text-white flex items-center space-x-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Daftar Pengguna Sistem & Hak Akses (Operator Kasir & Admin)</span>
           </span>
-          <span className="text-zinc-400 font-mono">{users.length} Operator</span>
+          <span className="text-zinc-400 font-mono">{totalItems} Operator</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -140,7 +204,7 @@ export default function SystemUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
-              {loading ? (
+              {loading && users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-zinc-400">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
@@ -189,6 +253,19 @@ export default function SystemUsersPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Component */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        disabled={loading}
+        pageSizeOptions={[10, 20, 50, 100]}
+        className="mt-4"
+      />
     </div>
   );
 }

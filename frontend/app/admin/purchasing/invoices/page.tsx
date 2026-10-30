@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api-client";
+import { useState, useEffect, useRef } from "react";
+import toast from "react-hot-toast";
+import { api, normalizePaginated } from "@/lib/api-client";
 import { formatRupiah, formatNumber, formatDate } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   ShoppingCart,
   Search,
@@ -29,6 +31,11 @@ export default function PurchasingInvoicesPage() {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [viewingInvoice, setViewingInvoice] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Return Modal State
   const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
@@ -50,13 +57,22 @@ export default function PurchasingInvoicesPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = async (
+    targetPage: number = page,
+    targetLimit: number = pageSize,
+    targetSearch: string = search,
+    targetType: "ALL" | "BL" | "RB" = invoiceTypeFilter
+  ) => {
     setLoading(true);
     try {
       if (activeTab === "invoices") {
-        const typeParam = invoiceTypeFilter === "ALL" ? undefined : invoiceTypeFilter;
-        const data = await api.purchasing.getInvoices(search, 50, typeParam);
-        setInvoices(data || []);
+        const typeParam = targetType === "ALL" ? undefined : targetType;
+        const res = await api.purchasing.getInvoices(targetSearch, targetLimit, typeParam, targetPage);
+        const paginated = normalizePaginated<any>(res, targetPage, targetLimit);
+        setInvoices(paginated.items);
+        setTotalItems(paginated.pagination.total);
+        setTotalPages(paginated.pagination.totalPages);
+        setPage(paginated.pagination.page);
       } else {
         const data = await api.purchasing.getAging();
         setAging(data || []);
@@ -69,15 +85,35 @@ export default function PurchasingInvoicesPage() {
   };
 
   useEffect(() => {
-    loadData();
+    setPage(1);
+    loadData(1, pageSize, search, invoiceTypeFilter);
     api.cashBank.getAccounts().then((accs) => {
-      if (accs) setAccounts(accs);
+      if (accs) {
+        const uniqueAccs = Array.from(
+          new Map((accs || []).map((a: any) => [a.kodeacc, a])).values()
+        );
+        setAccounts(uniqueAccs);
+      }
     }).catch(console.error);
   }, [activeTab, invoiceTypeFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadData();
+    setPage(1);
+    loadData(1, pageSize, search, invoiceTypeFilter);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadData(newPage, pageSize, search, invoiceTypeFilter);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadData(1, newSize, search, invoiceTypeFilter);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const openPayModal = (inv: any) => {
@@ -126,7 +162,7 @@ export default function PurchasingInvoicesPage() {
   const handleCreateReturnSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!returnRefInvoice || !returnItemCode || returnQty <= 0) {
-      alert("Mohon lengkapi nomor faktur asal, kode barang, dan jumlah retur.");
+      toast.error("Mohon lengkapi nomor faktur asal, kode barang, dan jumlah retur.");
       return;
     }
     setReturnSubmitting(true);
@@ -142,11 +178,12 @@ export default function PurchasingInvoicesPage() {
           },
         ],
       });
+      toast.success(`Retur Pembelian berhasil dicatat! No: ${res.notransaksi}`);
       setToastMessage(`Retur Pembelian berhasil dicatat! No Transaksi: ${res.notransaksi}`);
       setIsReturnModalOpen(false);
       await loadData();
     } catch (err: any) {
-      alert("Gagal membuat retur pembelian: " + err.message);
+      toast.error("Gagal membuat retur pembelian: " + err.message);
     } finally {
       setReturnSubmitting(false);
     }
@@ -375,7 +412,7 @@ export default function PurchasingInvoicesPage() {
               </button>
 
               <button
-                onClick={loadData}
+                onClick={() => loadData()}
                 className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shrink-0"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -385,7 +422,15 @@ export default function PurchasingInvoicesPage() {
           </div>
 
           {/* Table of Invoices */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+          <div ref={tableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+            {loading && invoices.length > 0 && (
+              <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+                <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+                  <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+                  <span>Memuat faktur...</span>
+                </div>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead className="bg-zinc-800 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-700">
@@ -506,6 +551,17 @@ export default function PurchasingInvoicesPage() {
               </table>
             </div>
           </div>
+
+          {/* Pagination Component */}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            disabled={loading}
+          />
         </div>
       ) : (
         /* Tab Aging Schedule */

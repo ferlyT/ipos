@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import {
   Award,
@@ -76,12 +77,12 @@ export default function LoyaltyPage() {
     if (!selectedMember) return;
 
     if (redeemQty <= 0) {
-      alert("Jumlah poin yang ditukar harus lebih dari 0");
+      toast.error("Jumlah poin yang ditukar harus lebih dari 0");
       return;
     }
 
     if (redeemQty > selectedMember.saldoPoinAktif) {
-      alert(`Jumlah poin melebihi saldo aktif (${selectedMember.saldoPoinAktif})`);
+      toast.error(`Jumlah poin melebihi saldo aktif (${selectedMember.saldoPoinAktif})`);
       return;
     }
 

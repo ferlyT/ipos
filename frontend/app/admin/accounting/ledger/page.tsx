@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api-client";
 import { formatRupiah, formatNumber, formatDate } from "@/lib/utils";
+import { Pagination } from "@/components/pagination";
 import {
   BookOpen,
   Calendar,
@@ -23,24 +24,41 @@ export default function GeneralLedgerPage() {
   const [endDate, setEndDate] = useState<string>("2026-12-31");
   const [ledgerData, setLedgerData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Load Accounts
   useEffect(() => {
     api.cashBank.getAccounts().then((accs) => {
-      setAccounts(accs || []);
+      const uniqueAccs = Array.from(
+        new Map((accs || []).map((a: any) => [a.kodeacc, a])).values()
+      );
+      setAccounts(uniqueAccs);
     }).catch(console.error);
   }, []);
 
-  const loadLedger = async () => {
-    if (!selectedAccount) return;
+  const loadLedger = async (
+    targetPage: number = page,
+    targetLimit: number = pageSize,
+    targetAccount: string = selectedAccount,
+    targetStart: string = startDate,
+    targetEnd: string = endDate
+  ) => {
+    if (!targetAccount) return;
     setLoading(true);
     try {
       const data = await api.accounting.getLedger(
-        selectedAccount,
-        startDate,
-        endDate
+        targetAccount,
+        targetStart,
+        targetEnd,
+        targetLimit,
+        targetPage
       );
       setLedgerData(data || null);
+      if (data?.pagination) {
+        setPage(data.pagination.page);
+      }
     } catch (err) {
       console.error("Gagal memuat buku besar:", err);
     } finally {
@@ -49,8 +67,22 @@ export default function GeneralLedgerPage() {
   };
 
   useEffect(() => {
-    loadLedger();
+    setPage(1);
+    loadLedger(1, pageSize, selectedAccount, startDate, endDate);
   }, [selectedAccount, startDate, endDate]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadLedger(newPage, pageSize, selectedAccount, startDate, endDate);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    loadLedger(1, newSize, selectedAccount, startDate, endDate);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const exportCSV = () => {
     if (!ledgerData || !ledgerData.mutasi) return;
@@ -110,7 +142,7 @@ export default function GeneralLedgerPage() {
             <span>Export CSV</span>
           </button>
           <button
-            onClick={loadLedger}
+            onClick={() => loadLedger()}
             className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-lg shadow-emerald-950/60 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -218,7 +250,15 @@ export default function GeneralLedgerPage() {
       </div>
 
       {/* Ledger Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+      <div ref={tableRef} className="relative bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+        {loading && ledgerData?.mutasi && ledgerData.mutasi.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-zinc-950/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="flex items-center space-x-2 bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-xs text-white shadow-xl">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+              <span>Memuat buku besar...</span>
+            </div>
+          </div>
+        )}
         <div className="p-4 bg-zinc-850 border-b border-zinc-800 flex justify-between items-center text-xs">
           <span className="font-bold text-white flex items-center space-x-2">
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
@@ -291,6 +331,20 @@ export default function GeneralLedgerPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Component */}
+      {ledgerData?.pagination && (
+        <Pagination
+          currentPage={page}
+          totalPages={ledgerData.pagination.totalPages}
+          pageSize={pageSize}
+          totalItems={ledgerData.pagination.total}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          disabled={loading}
+          className="mt-4"
+        />
+      )}
     </div>
   );
 }

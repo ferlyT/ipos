@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api-client";
 import { formatNumber } from "@/lib/utils";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import {
   QrCode,
   ArrowRightLeft,
@@ -298,6 +299,7 @@ export default function WmsScannerPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeSwitcher />
           <button
             type="button"
             onClick={() => setSoundEnabled(!soundEnabled)}

@@ -5,6 +5,7 @@ import { db } from "../../db";
 import { OrderPromotionService } from "../../services/order-promotion.service";
 import { requireAuth } from "../middleware/auth";
 import type { ApiRouter } from "../router";
+import { parsePagination, formatPaginatedResponse } from "../pagination";
 
 export function registerSystemRoutes(router: ApiRouter) {
   // GET /api/system/health - Ping & Status
@@ -35,14 +36,29 @@ export function registerSystemRoutes(router: ApiRouter) {
     return ctx.json(config);
   });
 
-  // GET /api/system/users - Daftar Pengguna & Operator Sistem
+  // GET /api/system/users?search=...&limit=50&page=1 - Daftar Pengguna & Operator Sistem
   router.get("/api/system/users", async (ctx) => {
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 25);
+    const search = ctx.query.search;
+
+    const where = search
+      ? sql`WHERE u.userid ILIKE ${'%' + search + '%'} OR u.nama ILIKE ${'%' + search + '%'}`
+      : sql``;
+
+    const countRes = await db.execute(sql`
+      SELECT COUNT(*)::int AS count FROM tbl_user u ${where};
+    `);
+    const total = Number((countRes[0] as any)?.count || 0);
+
     const users = await db.execute(sql`
       SELECT u.userid, u.nama, u.kelompok AS usergrup, u.loginkantor AS kantor, u.tipe, u.loginshift
       FROM tbl_user u
-      ORDER BY u.userid ASC;
+      ${where}
+      ORDER BY u.userid ASC
+      LIMIT ${limit} OFFSET ${offset};
     `);
-    return ctx.json(users);
+
+    return ctx.json(formatPaginatedResponse(users, total, page, limit, isPaginated));
   });
 
   // GET /api/system/roles - Daftar Kelompok Hak Akses / Role (tbl_userg)
@@ -111,9 +127,9 @@ export function registerSystemRoutes(router: ApiRouter) {
     return ctx.json({ success: true, role, modulid, field, value: boolVal });
   }, { requiredRole: "ADMINISTRATOR" }));
 
-  // GET /api/system/audit-trail?module=...&search=...&limit=100 - Unified Activity & Audit Trail
+  // GET /api/system/audit-trail?module=...&search=...&limit=100&page=1 - Unified Activity & Audit Trail
   router.get("/api/system/audit-trail", async (ctx) => {
-    const limit = ctx.query.limit ? parseInt(ctx.query.limit, 10) : 100;
+    const { page, limit, offset, isPaginated } = parsePagination(ctx.query, 50, 500);
     const filterModule = ctx.query.module;
     const search = ctx.query.search;
 
@@ -172,7 +188,7 @@ export function registerSystemRoutes(router: ApiRouter) {
         FROM tbl_acckashd k
       ) AS activity
       ORDER BY waktu DESC
-      LIMIT ${limit * 2};
+      LIMIT 2000;
     `);
 
     let list = raw as any[];
@@ -191,7 +207,10 @@ export function registerSystemRoutes(router: ApiRouter) {
       );
     }
 
-    return ctx.json(list.slice(0, limit));
+    const total = list.length;
+    const paged = isPaginated ? list.slice(offset, offset + limit) : list.slice(0, limit);
+
+    return ctx.json(formatPaginatedResponse(paged, total, page, limit, isPaginated));
   });
 
   // GET /api/system/database/stats - PostgreSQL Storage & Engine Health

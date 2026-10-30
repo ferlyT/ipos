@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import { formatNumber } from "@/lib/utils";
 import {
@@ -79,11 +80,11 @@ export default function WmsBinsPage() {
         slots: genSlots,
         maxQty: genMaxQty,
       });
-      alert(`Berhasil membuat ${res.count} lokasi rak baru!`);
+      toast.success(`Berhasil membuat ${res.count} lokasi rak baru!`);
       setShowGenModal(false);
       loadData();
     } catch (err: any) {
-      alert(err.message || "Gagal membuat deretan rak");
+      toast.error(err.message || "Gagal membuat deretan rak");
     } finally {
       setGenerating(false);
     }
