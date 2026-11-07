@@ -139,6 +139,18 @@ Backend iPos 4.0 telah dilengkapi dengan antarmuka **REST API HTTP** berkinerja 
 
 ---
 
+### 2.10 Modul Audit Trail & Log Database Trigger (`/api/audit-logs`)
+
+Audit log otomatis mencatat setiap operasi **UPDATE** dan **DELETE** data transaksi penjualan (`tbl_ikhd`, `tbl_ikdt`) dan pembelian (`tbl_imhd`, `tbl_imdt`) melalui trigger native database PostgreSQL.
+
+| Metode | Endpoint | Deskripsi | Parameter Query |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/audit-logs` | Mengambil riwayat log audit perubahan/penghapusan data. | `modul` (PENJUALAN/PEMBELIAN), `action` (UPDATE/DELETE), `notransaksi`, `table`, `user`, `page`, `limit` |
+| `GET` | `/api/audit-logs/detail` | Melihat detail snapshot JSON data sebelum (`data_lama`) dan sesudah (`data_baru`). | `id` (ID audit log) |
+| `GET` | `/api/audit-logs/summary` | Ringkasan statistik jumlah update & delete serta 10 penghapusan terakhir. | - |
+
+---
+
 ## 3. Cara Menjalankan Server & Uji Coba
 
 Jalankan perintah berikut di folder `backend`:

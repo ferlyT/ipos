@@ -297,4 +297,147 @@ export function registerSalesRoutes(router: ApiRouter) {
     });
     return ctx.json(result, 201);
   });
+
+  // GET /api/sales/tax-report - Laporan Detail Penjualan Berpajak & KPI Pajak
+  router.get("/api/sales/tax-report", async (ctx) => {
+    const { startDate, endDate, search, hasNofp, all } = ctx.query;
+    const isAll = all === "true" || all === "1";
+    const page = Math.max(1, parseInt(ctx.query.page || "1", 10));
+    const limit = isAll ? 5000 : Math.max(1, Math.min(200, parseInt(ctx.query.limit || "25", 10)));
+    const offset = (page - 1) * limit;
+
+    const conditions: any[] = [sql`ik.pajak > 0`];
+
+    if (startDate) {
+      conditions.push(sql`ik.tanggal::date >= ${startDate}::date`);
+    }
+    if (endDate) {
+      conditions.push(sql`ik.tanggal::date <= ${endDate}::date`);
+    }
+    if (hasNofp === "YES") {
+      conditions.push(sql`(ik.nofp IS NOT NULL AND TRIM(ik.nofp) != '')`);
+    } else if (hasNofp === "NO") {
+      conditions.push(sql`(ik.nofp IS NULL OR TRIM(ik.nofp) = '')`);
+    }
+
+    if (search && search.trim() !== "") {
+      const term = `%${search.trim()}%`;
+      conditions.push(sql`(
+        ik.notransaksi ILIKE ${term} OR
+        ik.nofp ILIKE ${term} OR
+        sp.nama ILIKE ${term} OR
+        sp.kode ILIKE ${term} OR
+        EXISTS (
+          SELECT 1 FROM tbl_ikdt dt 
+          LEFT JOIN tbl_item it ON dt.kodeitem = it.kodeitem 
+          WHERE dt.notransaksi = ik.notransaksi AND (dt.kodeitem ILIKE ${term} OR it.namaitem ILIKE ${term})
+        )
+      )`);
+    }
+
+    const whereClause = sql`WHERE ${sql.join(conditions, sql` AND `)}`;
+
+    // 1. Ambil Summary Agregat (KPIs)
+    const summaryRes = await db.execute<any>(sql`
+      SELECT 
+        COUNT(ik.notransaksi)::int AS total_invoices,
+        COALESCE(SUM(ik.subtotal), 0)::float AS total_dpp,
+        COALESCE(SUM(ik.pajak), 0)::float AS total_tax,
+        COALESCE(SUM(ik.totalakhir), 0)::float AS total_grand
+      FROM tbl_ikhd ik
+      LEFT JOIN tbl_supel sp ON ik.kodesupel = sp.kode
+      ${whereClause};
+    `);
+
+    const summary = summaryRes[0] || {
+      total_invoices: 0,
+      total_dpp: 0,
+      total_tax: 0,
+      total_grand: 0,
+    };
+
+    const total = Number(summary.total_invoices || 0);
+    const totalPages = isAll ? 1 : Math.ceil(total / limit) || 1;
+
+    // 2. Ambil Daftar Header Faktur Berpajak
+    const paginationClause = isAll ? sql`` : sql`LIMIT ${limit} OFFSET ${offset}`;
+    const invoices = await db.execute<any>(sql`
+      SELECT 
+        ik.notransaksi,
+        ik.tanggal::text AS tanggal,
+        ik.kodekantor,
+        ik.kodesupel,
+        sp.nama AS namapelanggan,
+        sp.alamat,
+        sp.telepon,
+        sp.npwp,
+        sp.nama_npwp,
+        sp.alamat_npwp,
+        ik.subtotal::float AS dpp,
+        COALESCE(ik.potnomfaktur, 0)::float AS potongan,
+        COALESCE(ik.biayalain, 0)::float AS biayalain,
+        COALESCE(ik.prpajak, 0)::float AS prpajak,
+        ik.pajak::float AS pajak,
+        ik.totalakhir::float AS totalakhir,
+        COALESCE(ik.nofp, '') AS nofp,
+        ik.carabayar,
+        ik.user1 AS kasir,
+        ik.keterangan
+      FROM tbl_ikhd ik
+      LEFT JOIN tbl_supel sp ON ik.kodesupel = sp.kode
+      ${whereClause}
+      ORDER BY ik.tanggal DESC
+      ${paginationClause};
+    `);
+
+    // 3. Ambil Detail Item Barang jika ada faktur pada halaman ini
+    if (invoices.length > 0) {
+      const invoiceNumbers = invoices.map((inv: any) => inv.notransaksi);
+      const items = await db.execute<any>(sql`
+        SELECT 
+          dt.iddetail,
+          dt.notransaksi,
+          dt.nobaris,
+          dt.kodeitem,
+          COALESCE(it.namaitem, dt.kodeitem) AS namaitem,
+          dt.jumlah::float AS jumlah,
+          dt.satuan,
+          dt.harga::float AS harga,
+          dt.potongan::float AS potongan,
+          dt.total::float AS total
+        FROM tbl_ikdt dt
+        LEFT JOIN tbl_item it ON dt.kodeitem = it.kodeitem
+        WHERE dt.notransaksi IN (${sql.join(invoiceNumbers.map((no: string) => sql`${no}`), sql`, `)})
+        ORDER BY dt.notransaksi, dt.nobaris ASC;
+      `);
+
+      const itemsByInvoice = new Map<string, any[]>();
+      for (const item of items) {
+        if (!itemsByInvoice.has(item.notransaksi)) {
+          itemsByInvoice.set(item.notransaksi, []);
+        }
+        itemsByInvoice.get(item.notransaksi)!.push(item);
+      }
+
+      for (const inv of invoices) {
+        inv.details = itemsByInvoice.get(inv.notransaksi) || [];
+      }
+    }
+
+    return ctx.json({
+      summary: {
+        totalInvoices: total,
+        totalDpp: Number(summary.total_dpp || 0),
+        totalTax: Number(summary.total_tax || 0),
+        totalGrand: Number(summary.total_grand || 0),
+      },
+      items: invoices,
+      pagination: {
+        page,
+        limit: isAll ? total : limit,
+        total,
+        totalPages,
+      },
+    });
+  });
 }

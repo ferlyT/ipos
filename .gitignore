@@ -30,6 +30,7 @@ backups/
 backend/backups/
 *.dump
 *.sql
+!backend/src/db/migrations/*.sql
 *.sqlite
 
 # Logs & Temporary Files
