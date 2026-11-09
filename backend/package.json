@@ -18,6 +18,8 @@
     "test:wms": "bun run src/test-wms-engine.ts",
     "test:api": "bun run src/test-api.ts",
     "test:security": "bun run src/test-security-auth.ts",
+    "test:audit-log": "bun run src/test-audit-log.ts",
+    "migrate:audit": "bun run src/run_audit_migration.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",

@@ -11,6 +11,7 @@ import { registerCashBankRoutes } from "./routes/cash-bank.routes";
 import { registerAccountingRoutes } from "./routes/accounting.routes";
 import { registerWmsRoutes } from "./routes/wms.routes";
 import { registerPeriodRoutes } from "./routes/period.routes";
+import { registerAuditRoutes } from "./routes/audit.routes";
 
 export function createApiApp(): ApiRouter {
   const router = new ApiRouter();
@@ -79,6 +80,11 @@ export function createApiApp(): ApiRouter {
           "/api/accounting/balance-sheet",
           "/api/accounting/ledger",
         ],
+        audit: [
+          "/api/audit-logs",
+          "/api/audit-logs/detail",
+          "/api/audit-logs/summary",
+        ],
       },
       documentation: "DOKUMENTASI_REST_API_IPOS4.md",
     });
@@ -97,6 +103,7 @@ export function createApiApp(): ApiRouter {
   registerAccountingRoutes(router);
   registerWmsRoutes(router);
   registerPeriodRoutes(router);
+  registerAuditRoutes(router);
 
   return router;
 }

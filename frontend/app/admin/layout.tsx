@@ -13,6 +13,7 @@ import {
   Boxes,
   ShoppingCart,
   Receipt,
+  ReceiptText,
   Wallet,
   FileSpreadsheet,
   Monitor,
@@ -80,6 +81,7 @@ const NAV_GROUPS = [
       { href: "/admin/cash-bank/drawers", label: "Shift Laci Kasir", icon: WalletCards },
       { href: "/admin/accounting/profit-loss", label: "Laporan Akuntansi", icon: FileSpreadsheet },
       { href: "/admin/accounting/ledger", label: "Buku Besar Umum", icon: BookOpen },
+      { href: "/admin/accounting/tax-report", label: "Laporan Pajak Penjualan", icon: ReceiptText },
     ],
   },
   {

@@ -469,6 +469,39 @@ export const api = {
       request<any>(`/api/sales/loyalty?customerCode=${encodeURIComponent(customerCode)}`),
     getLoyaltyMembers: (search: string = "", limit: number = 50) =>
       request<any[]>(`/api/sales/loyalty/members?search=${encodeURIComponent(search)}&limit=${limit}`),
+    getTaxReport: (params?: {
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+      hasNofp?: "ALL" | "YES" | "NO";
+      page?: number;
+      limit?: number;
+      all?: boolean;
+    }) => {
+      const q = new URLSearchParams();
+      if (params?.startDate) q.set("startDate", params.startDate);
+      if (params?.endDate) q.set("endDate", params.endDate);
+      if (params?.search) q.set("search", params.search);
+      if (params?.hasNofp && params.hasNofp !== "ALL") q.set("hasNofp", params.hasNofp);
+      if (params?.page) q.set("page", params.page.toString());
+      if (params?.limit) q.set("limit", params.limit.toString());
+      if (params?.all) q.set("all", "true");
+      return request<{
+        summary: {
+          totalInvoices: number;
+          totalDpp: number;
+          totalTax: number;
+          totalGrand: number;
+        };
+        items: any[];
+        pagination: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      }>("/api/sales/tax-report?" + q.toString());
+    },
     redeemLoyaltyPoints: (payload: {
       notransaksi?: string;
       kodekantor?: string;
