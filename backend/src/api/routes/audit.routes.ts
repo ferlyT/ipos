@@ -16,6 +16,7 @@ export function registerAuditRoutes(router: ApiRouter) {
     const table_name = ctx.query.table;
     const user = ctx.query.user;
     const schema = ctx.query.schema;
+    const search = ctx.query.search;
 
     const conditions: any[] = [];
     if (schema) conditions.push(sql`schema_name = ${schema}`);
@@ -24,6 +25,10 @@ export function registerAuditRoutes(router: ApiRouter) {
     if (notransaksi) conditions.push(sql`notransaksi ILIKE ${'%' + notransaksi + '%'}`);
     if (table_name) conditions.push(sql`table_name = ${table_name}`);
     if (user) conditions.push(sql`user_app ILIKE ${'%' + user + '%'}`);
+    if (search) {
+      const searchPattern = `%${search}%`;
+      conditions.push(sql`(notransaksi ILIKE ${searchPattern} OR user_app ILIKE ${searchPattern} OR perubahan_kolom ILIKE ${searchPattern} OR table_name ILIKE ${searchPattern})`);
+    }
 
     const whereClause = conditions.length > 0 
       ? sql`WHERE ${sql.join(conditions, sql` AND `)}` 
@@ -55,6 +60,7 @@ export function registerAuditRoutes(router: ApiRouter) {
         user_db,
         ip_client,
         perubahan_kolom,
+        matauang,
         created_at
       FROM tbl_audit_log
       ${whereClause}

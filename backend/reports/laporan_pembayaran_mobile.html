@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Laporan Pembayaran Piutang & Hutang (2025 - Sekarang)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff !important; color: #000 !important; font-size: 11px; }
+      .card-box { border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; }
+    }
+    /* Custom scrollbar for mobile friendly horizontal scroll */
+    .table-scroll::-webkit-scrollbar {
+      height: 6px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+  <!-- Mobile Top App Bar / Header -->
+  <header class="bg-indigo-900 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="bg-indigo-500/30 text-indigo-200 text-xs px-2 py-0.5 rounded font-mono font-medium">iPos 4.0</span>
+          <span class="text-xs text-indigo-200">DB: i4_baruna20261110sore</span>
+        </div>
+        <h1 class="text-lg sm:text-xl font-bold tracking-tight mt-0.5">Laporan Pembayaran</h1>
+      </div>
+      <div class="flex items-center gap-2 no-print">
+        <button onclick="window.print()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          <span class="hidden sm:inline">Cetak / PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Segmented Navigation Tabs (Touch Friendly) -->
+    <div class="max-w-7xl mx-auto px-2 sm:px-6 flex border-t border-indigo-800/60 no-print">
+      <button onclick="switchTab('tab-ringkasan')" id="btn-tab-ringkasan" class="tab-btn flex-1 py-2.5 text-xs sm:text-sm font-semibold text-center text-white border-b-2 border-amber-400 flex items-center justify-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        <span>Ringkasan</span>
+      </button>
+      <button onclick="switchTab('tab-piutang')" id="btn-tab-piutang" class="tab-btn flex-1 py-2.5 text-xs sm:text-sm font-semibold text-center text-indigo-300 hover:text-white border-b-2 border-transparent flex items-center justify-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
+        <span>Piutang (23)</span>
+      </button>
+      <button onclick="switchTab('tab-hutang')" id="btn-tab-hutang" class="tab-btn flex-1 py-2.5 text-xs sm:text-sm font-semibold text-center text-indigo-300 hover:text-white border-b-2 border-transparent flex items-center justify-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
+        <span>Hutang (119)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: RINGKASAN (DASHBOARD) -->
+    <!-- ============================================================== -->
+    <div id="tab-ringkasan" class="tab-content space-y-4 sm:space-y-6">
+      
+      <!-- Date Input Information Notice Banner -->
+      <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded-r-xl shadow-sm">
+        <div class="flex items-start">
+          <div class="flex-shrink-0 text-amber-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <div class="ml-3 text-xs sm:text-sm text-amber-900">
+            <p class="font-bold">Informasi Tanggal Input Sistem (dateupd):</p>
+            <p class="mt-0.5 text-amber-800 leading-relaxed">
+              Laporan ini menampilkan <strong>Tanggal Input Sistem</strong> (saat operator menyimpan transaksi ke database) berdampingan dengan <strong>Tanggal Transaksi Nota</strong>. Hal ini mempermudah audit transaksi faktur susulan / backdated.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick KPI Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+        
+        <!-- Card 1: Piutang -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Penerimaan Piutang</span>
+            <span class="text-xs text-slate-400 font-medium">23 Transaksi</span>
+          </div>
+          <div class="mt-2">
+            <div class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">Rp 359,920,990</div>
+            <div class="text-[11px] text-slate-500 mt-1 flex justify-between">
+              <span>BCA: Rp 358,645,990</span>
+              <span>Kas: Rp 1,275,000</span>
+            </div>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500"></div>
+        </div>
+
+        <!-- Card 2: Hutang -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded">Pengeluaran Hutang</span>
+            <span class="text-xs text-slate-400 font-medium">119 Transaksi</span>
+          </div>
+          <div class="mt-2">
+            <div class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">Rp 1,479,240,944</div>
+            <div class="text-[11px] text-slate-500 mt-1 flex justify-between">
+              <span>BCA: Rp 1,353,375,144</span>
+              <span>Kas: Rp 125,865,800</span>
+            </div>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-rose-500"></div>
+        </div>
+
+        <!-- Card 3: Net Cashflow -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Net Arus Kas</span>
+            <span class="text-xs text-slate-400 font-medium">Piutang - Hutang</span>
+          </div>
+          <div class="mt-2">
+            <div class="text-xl sm:text-2xl font-black text-rose-600 tracking-tight">-Rp 1,119,319,954</div>
+            <div class="text-[11px] text-slate-500 mt-1">
+              <span>Net Outflow Operasional Hutang Piutang</span>
+            </div>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"></div>
+        </div>
+
+      </div>
+
+      <!-- Detail Rekapitulasi Kas & Bank -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-700">Distribusi Akun Pembayaran (Kas & Bank)</h2>
+          <span class="text-[11px] text-slate-400">Tahun 2025 - Sekarang</span>
+        </div>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+            <div class="flex items-center justify-between font-bold text-slate-800 text-xs sm:text-sm">
+              <span class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                BANK BCA
+              </span>
+              <span class="text-indigo-900 font-black">Rp 1,712,021,134</span>
+            </div>
+            <div class="mt-2 text-xs space-y-1 text-slate-600">
+              <div class="flex justify-between">
+                <span>Penerimaan Piutang Masuk (21 trs):</span>
+                <span class="font-medium text-emerald-600">+Rp 358,645,990</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Pembayaran Hutang Keluar (103 trs):</span>
+                <span class="font-medium text-rose-600">-Rp 1,353,375,144</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+            <div class="flex items-center justify-between font-bold text-slate-800 text-xs sm:text-sm">
+              <span class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                KAS KECIL
+              </span>
+              <span class="text-indigo-900 font-black">Rp 127,140,800</span>
+            </div>
+            <div class="mt-2 text-xs space-y-1 text-slate-600">
+              <div class="flex justify-between">
+                <span>Penerimaan Piutang Masuk (2 trs):</span>
+                <span class="font-medium text-emerald-600">+Rp 1,275,000</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Pembayaran Hutang Keluar (16 trs):</span>
+                <span class="font-medium text-rose-600">-Rp 125,865,800</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons to jump to tabs -->
+      <div class="grid grid-cols-2 gap-3 no-print">
+        <button onclick="switchTab('tab-piutang')" class="p-3.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-left transition group">
+          <div class="text-xs font-bold text-emerald-800 group-hover:underline flex items-center justify-between">
+            <span>Buka Rincian Piutang</span>
+            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <p class="text-[11px] text-emerald-700 mt-0.5">23 transaksi dengan tanggal input lengkap</p>
+        </button>
+        <button onclick="switchTab('tab-hutang')" class="p-3.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-left transition group">
+          <div class="text-xs font-bold text-rose-800 group-hover:underline flex items-center justify-between">
+            <span>Buka Rincian Hutang</span>
+            <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <p class="text-[11px] text-rose-700 mt-0.5">119 transaksi dengan tanggal input lengkap</p>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: PEMBAYARAN PIUTANG (23 Transaksi) -->
+    <!-- ============================================================== -->
+    <div id="tab-piutang" class="tab-content hidden space-y-4">
+      
+      <!-- Filter Bar -->
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between no-print">
+        <div class="relative flex-1">
+          <input type="text" id="search-piutang" onkeyup="filterPiutang()" placeholder="Cari pelanggan / no transaksi / akun..." class="w-full text-xs sm:text-sm pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <div class="flex items-center gap-2 justify-between">
+          <span class="text-xs text-slate-500" id="count-piutang-label">Menampilkan 23 transaksi</span>
+          <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Rp 359,920,990</span>
+        </div>
+      </div>
+
+      <!-- Mobile Card View & Desktop Table View for Piutang -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <!-- Table for Desktop/Tablet (Hidden on small mobile) -->
+        <div class="hidden md:block overflow-x-auto table-scroll">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+                <th class="p-3">No Transaksi</th>
+                <th class="p-3 bg-amber-50 text-amber-900 border-x border-amber-200">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Tgl Input (dateupd)
+                  </span>
+                </th>
+                <th class="p-3">Tgl Transaksi</th>
+                <th class="p-3">Pelanggan</th>
+                <th class="p-3">Akun Bayar</th>
+                <th class="p-3 text-right">Nominal (Rp)</th>
+                <th class="p-3">User</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-piutang" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Touch-Friendly Cards for Mobile (< md) -->
+        <div id="cards-piutang" class="md:hidden divide-y divide-slate-100">
+          <!-- Dynamically populated mobile cards -->
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: PEMBAYARAN HUTANG (119 Transaksi) -->
+    <!-- ============================================================== -->
+    <div id="tab-hutang" class="tab-content hidden space-y-4">
+      
+      <!-- Filter Bar -->
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between no-print">
+        <div class="relative flex-1">
+          <input type="text" id="search-hutang" onkeyup="filterHutang()" placeholder="Cari supplier / no transaksi / akun / periode..." class="w-full text-xs sm:text-sm pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <div class="flex items-center gap-2 justify-between">
+          <span class="text-xs text-slate-500" id="count-hutang-label">Menampilkan 119 transaksi</span>
+          <span class="bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold">Rp 1,479,240,944</span>
+        </div>
+      </div>
+
+      <!-- Mobile Card View & Desktop Table View for Hutang -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <!-- Table for Desktop/Tablet -->
+        <div class="hidden md:block overflow-x-auto table-scroll">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+                <th class="p-3">No Transaksi</th>
+                <th class="p-3 bg-amber-50 text-amber-900 border-x border-amber-200">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Tgl Input (dateupd)
+                  </span>
+                </th>
+                <th class="p-3">Tgl Transaksi</th>
+                <th class="p-3">Supplier</th>
+                <th class="p-3">Akun Bayar</th>
+                <th class="p-3 text-right">Nominal (Rp)</th>
+                <th class="p-3">User</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-hutang" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Touch-Friendly Cards for Mobile (< md) -->
+        <div id="cards-hutang" class="md:hidden divide-y divide-slate-100">
+          <!-- Dynamically populated mobile cards -->
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Sticky Bottom Summary Bar for Mobile Screen -->
+  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 px-4 py-2.5 z-20 shadow-lg no-print flex items-center justify-between text-xs">
+    <div>
+      <span class="text-slate-400 block text-[10px]">TOTAL PENGELUARAN NET</span>
+      <span class="font-black text-rose-600 text-sm">-Rp 1,119,319,954</span>
+    </div>
+    <div class="text-right">
+      <span class="text-slate-500 block text-[10px]">142 Total Transaksi</span>
+      <span class="text-indigo-900 font-bold">2025 - 2026</span>
+    </div>
+  </div>
+
+  <!-- Raw Embedded JSON Data for Instant Filtering -->
+  <script>
+    const dataPiutang = [{"notransaksi": "1167/BP/UTM/25", "tgl_transaksi": "2025-02-01 19:04:48", "tgl_input": "2025-09-29 19:04:48", "user_input": "ADMIN", "kodesupel": "PL0525", "nama_pelanggan": "ANDIKA / KM.MERINDO ABADI 1", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "665000.00", "keterangan": ""}, {"notransaksi": "1166/BP/UTM/25", "tgl_transaksi": "2025-01-25 20:46:35", "tgl_input": "2025-09-26 20:46:35", "user_input": "ADMIN", "kodesupel": "PL0355", "nama_pelanggan": "PT.BERKAH MELIMPAH JAYA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "47961990.00", "keterangan": ""}, {"notransaksi": "1165/BP/UTM/25", "tgl_transaksi": "2025-01-20 20:45:21", "tgl_input": "2025-09-26 20:45:21", "user_input": "ADMIN", "kodesupel": "PL0110", "nama_pelanggan": "APIN / HASIL LAUT", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "128936850.00", "keterangan": ""}, {"notransaksi": "1164/BP/UTM/25", "tgl_transaksi": "2025-03-11 19:54:42", "tgl_input": "2025-09-26 19:54:42", "user_input": "ADMIN", "kodesupel": "PL0454", "nama_pelanggan": "HOK-HOK / KM.PUTRA SAMUDRA 02", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1140000.00", "keterangan": ""}, {"notransaksi": "1163/BP/UTM/25", "tgl_transaksi": "2025-03-11 19:54:14", "tgl_input": "2025-09-26 19:54:14", "user_input": "ADMIN", "kodesupel": "PL0450", "nama_pelanggan": "HOK-HOK / KM.PUTRA SAMUDRA 03", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "12880100.00", "keterangan": ""}, {"notransaksi": "1162/BP/UTM/25", "tgl_transaksi": "2025-01-20 19:28:17", "tgl_input": "2025-09-26 19:28:17", "user_input": "ADMIN", "kodesupel": "PL0079", "nama_pelanggan": "AHUAT", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "47003050.00", "keterangan": ""}, {"notransaksi": "1161/BP/UTM/25", "tgl_transaksi": "2025-02-13 19:03:21", "tgl_input": "2025-09-26 19:03:21", "user_input": "ADMIN", "kodesupel": "PL0110", "nama_pelanggan": "APIN / HASIL LAUT", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "45891400.00", "keterangan": ""}, {"notransaksi": "1160/BP/UTM/25", "tgl_transaksi": "2025-01-10 18:53:07", "tgl_input": "2025-09-26 18:53:07", "user_input": "ADMIN", "kodesupel": "PL0390", "nama_pelanggan": "TOKO JAYA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "9810150.00", "keterangan": ""}, {"notransaksi": "1159/BP/UTM/25", "tgl_transaksi": "2025-02-03 18:50:00", "tgl_input": "2025-09-26 18:50:00", "user_input": "ADMIN", "kodesupel": "PL0527", "nama_pelanggan": "ANDIKA / KM.RAJA NELAYAN 1", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "12070700.00", "keterangan": ""}, {"notransaksi": "1158/BP/UTM/25", "tgl_transaksi": "2025-02-10 18:46:27", "tgl_input": "2025-09-26 18:46:27", "user_input": "ADMIN", "kodesupel": "PL0390", "nama_pelanggan": "TOKO JAYA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "57000.00", "keterangan": ""}, {"notransaksi": "1157/BP/UTM/25", "tgl_transaksi": "2025-01-23 18:45:41", "tgl_input": "2025-09-26 18:45:41", "user_input": "ADMIN", "kodesupel": "PL0529", "nama_pelanggan": "ING AH / KM.NELAYAN KHARISMA TANGGUH", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1710000.00", "keterangan": ""}, {"notransaksi": "1156/BP/UTM/25", "tgl_transaksi": "2025-01-22 18:44:12", "tgl_input": "2025-09-26 18:44:12", "user_input": "ADMIN", "kodesupel": "PL0372", "nama_pelanggan": "ING AH / KM.SUMBER BARU JAYA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "11474750.00", "keterangan": ""}, {"notransaksi": "1155/BP/UTM/25", "tgl_transaksi": "2025-01-21 18:41:54", "tgl_input": "2025-09-26 18:41:54", "user_input": "ADMIN", "kodesupel": "PL0526", "nama_pelanggan": "OKY / KM.MARITIM SUMBER SEJAHTERA 2", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "7300750.00", "keterangan": ""}, {"notransaksi": "1154/BP/UTM/25", "tgl_transaksi": "2025-02-04 18:38:36", "tgl_input": "2025-09-26 18:38:36", "user_input": "ADMIN", "kodesupel": "PL0532", "nama_pelanggan": "HOK HOK / KM.RAJAWALI", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2726500.00", "keterangan": ""}, {"notransaksi": "1153/BP/UTM/25", "tgl_transaksi": "2025-02-04 18:36:08", "tgl_input": "2025-09-26 18:36:08", "user_input": "ADMIN", "kodesupel": "PL0530", "nama_pelanggan": "HOK HOK / KM.VINCENT JAYA 03", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1140000.00", "keterangan": ""}, {"notransaksi": "1152/BP/UTM/25", "tgl_transaksi": "2025-02-06 18:33:24", "tgl_input": "2025-09-26 18:33:24", "user_input": "ADMIN", "kodesupel": "PL0504", "nama_pelanggan": "OKY / KM.SAMUDRA JAYA 1", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1140000.00", "keterangan": ""}, {"notransaksi": "1151/BP/UTM/25", "tgl_transaksi": "2025-02-03 18:29:54", "tgl_input": "2025-09-26 18:29:54", "user_input": "ADMIN", "kodesupel": "PL0528", "nama_pelanggan": "ANDIKA / KM.AMAN LANCAR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3320250.00", "keterangan": ""}, {"notransaksi": "1150/BP/UTM/25", "tgl_transaksi": "2025-02-03 18:27:15", "tgl_input": "2025-09-26 18:27:15", "user_input": "ADMIN", "kodesupel": "PL0527", "nama_pelanggan": "ANDIKA / KM.RAJA NELAYAN 1", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2831000.00", "keterangan": ""}, {"notransaksi": "1149/BP/UTM/25", "tgl_transaksi": "2025-01-20 18:22:06", "tgl_input": "2025-09-26 18:22:06", "user_input": "ADMIN", "kodesupel": "PL0454", "nama_pelanggan": "HOK-HOK / KM.PUTRA SAMUDRA 02", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2945000.00", "keterangan": ""}, {"notransaksi": "1148/BP/UTM/25", "tgl_transaksi": "2025-02-11 18:19:25", "tgl_input": "2025-09-26 18:19:25", "user_input": "ADMIN", "kodesupel": "PL0533", "nama_pelanggan": "TRANSIT 25 / KM.CUAN FOREVER", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "57000.00", "keterangan": ""}, {"notransaksi": "1147/BP/UTM/25", "tgl_transaksi": "2025-01-22 18:18:31", "tgl_input": "2025-09-26 18:18:31", "user_input": "ADMIN", "kodesupel": "PL0503", "nama_pelanggan": "OKY / KM.MERINDO BAHAGIA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1615000.00", "keterangan": ""}, {"notransaksi": "1066/BP/UTM/25", "tgl_transaksi": "2025-01-13 19:12:26", "tgl_input": "2025-09-20 19:12:26", "user_input": "ADMIN", "kodesupel": "PL0158", "nama_pelanggan": "BOY", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "16634500.00", "keterangan": ""}, {"notransaksi": "0801/BP/UTM/25", "tgl_transaksi": "2025-05-31 13:52:15", "tgl_input": "2025-08-19 13:52:15", "user_input": "ADMIN", "kodesupel": "PL0542", "nama_pelanggan": "MONTIR WAHI", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "610000.00", "keterangan": ""}];
+    const dataHutang = [{"notransaksi": "0747/BH/UTM/0426", "tgl_transaksi": "2026-04-27 22:54:30", "tgl_input": "2026-04-27 22:54:30", "user_input": "ADMIN", "kodesupel": "SU0038", "nama_supplier": "MM DIESELINDO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2175000.00", "keterangan": ""}, {"notransaksi": "0746/BH/UTM/0426", "tgl_transaksi": "2026-04-27 22:54:12", "tgl_input": "2026-04-27 22:54:12", "user_input": "ADMIN", "kodesupel": "SU0038", "nama_supplier": "MM DIESELINDO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4800000.00", "keterangan": ""}, {"notransaksi": "0745/BH/UTM/0426", "tgl_transaksi": "2026-04-27 22:53:50", "tgl_input": "2026-04-27 22:53:50", "user_input": "ADMIN", "kodesupel": "SP0070", "nama_supplier": "MATARAM MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3510000.00", "keterangan": ""}, {"notransaksi": "0744/BH/UTM/0426", "tgl_transaksi": "2025-12-06 22:51:15", "tgl_input": "2026-04-27 22:51:15", "user_input": "ADMIN", "kodesupel": "SP0071", "nama_supplier": "SINAR CEMERLANG AUTO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "5000000.00", "keterangan": ""}, {"notransaksi": "0743/BH/UTM/0426", "tgl_transaksi": "2026-02-12 22:45:30", "tgl_input": "2026-04-27 22:45:30", "user_input": "ADMIN", "kodesupel": "SP0080", "nama_supplier": "HARAPAN JAYA MAKMUR (HJM)", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4650000.00", "keterangan": ""}, {"notransaksi": "0742/BH/UTM/0426", "tgl_transaksi": "2025-10-05 22:42:20", "tgl_input": "2026-04-27 22:42:20", "user_input": "ADMIN", "kodesupel": "SP0080", "nama_supplier": "HARAPAN JAYA MAKMUR (HJM)", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "34960000.00", "keterangan": ""}, {"notransaksi": "0741/BH/UTM/0426", "tgl_transaksi": "2026-01-08 22:38:35", "tgl_input": "2026-04-27 22:38:35", "user_input": "ADMIN", "kodesupel": "SU0038", "nama_supplier": "MM DIESELINDO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "6875000.00", "keterangan": ""}, {"notransaksi": "0740/BH/UTM/0426", "tgl_transaksi": "2026-01-08 22:32:26", "tgl_input": "2026-04-27 22:32:26", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2245000.00", "keterangan": ""}, {"notransaksi": "0739/BH/UTM/0426", "tgl_transaksi": "2025-12-16 22:27:11", "tgl_input": "2026-04-27 22:27:11", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "38600000.00", "keterangan": ""}, {"notransaksi": "0738/BH/UTM/0426", "tgl_transaksi": "2025-10-10 22:18:11", "tgl_input": "2026-04-27 22:18:11", "user_input": "ADMIN", "kodesupel": "SP0080", "nama_supplier": "HARAPAN JAYA MAKMUR (HJM)", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "12000000.00", "keterangan": ""}, {"notransaksi": "0737/BH/UTM/0426", "tgl_transaksi": "2025-10-10 22:16:56", "tgl_input": "2026-04-27 22:17:02", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3315000.00", "keterangan": ""}, {"notransaksi": "0736/BH/UTM/0426", "tgl_transaksi": "2026-01-23 22:14:10", "tgl_input": "2026-04-27 22:14:10", "user_input": "ADMIN", "kodesupel": "SU0009", "nama_supplier": "BENGKEL BUBUT LAS", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4300000.00", "keterangan": ""}, {"notransaksi": "0735/BH/UTM/0426", "tgl_transaksi": "2026-03-04 22:11:55", "tgl_input": "2026-04-27 22:11:55", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "7000000.00", "keterangan": ""}, {"notransaksi": "0734/BH/UTM/0426", "tgl_transaksi": "2026-03-04 22:09:17", "tgl_input": "2026-04-27 22:09:17", "user_input": "ADMIN", "kodesupel": "SP0081", "nama_supplier": "SEJAHTERA ALAM GEMPITA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3225000.00", "keterangan": ""}, {"notransaksi": "0733/BH/UTM/0426", "tgl_transaksi": "2026-03-04 22:08:19", "tgl_input": "2026-04-27 22:08:19", "user_input": "ADMIN", "kodesupel": "SU0038", "nama_supplier": "MM DIESELINDO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "5000000.00", "keterangan": ""}, {"notransaksi": "0732/BH/UTM/0426", "tgl_transaksi": "2026-01-22 21:55:11", "tgl_input": "2026-04-27 21:55:11", "user_input": "ADMIN", "kodesupel": "SP0070", "nama_supplier": "MATARAM MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4395000.00", "keterangan": ""}, {"notransaksi": "0731/BH/UTM/0426", "tgl_transaksi": "2026-01-15 21:53:20", "tgl_input": "2026-04-27 21:53:20", "user_input": "ADMIN", "kodesupel": "SP0080", "nama_supplier": "HARAPAN JAYA MAKMUR (HJM)", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "9976000.00", "keterangan": ""}, {"notransaksi": "0730/BH/UTM/0426", "tgl_transaksi": "2026-01-15 21:51:06", "tgl_input": "2026-04-27 21:51:06", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3935000.00", "keterangan": ""}, {"notransaksi": "0729/BH/UTM/0426", "tgl_transaksi": "2026-01-15 21:49:15", "tgl_input": "2026-04-27 21:49:15", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "19135000.00", "keterangan": ""}, {"notransaksi": "0728/BH/UTM/0426", "tgl_transaksi": "2026-01-15 21:47:05", "tgl_input": "2026-04-27 21:47:05", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "7715000.00", "keterangan": ""}, {"notransaksi": "0727/BH/UTM/0426", "tgl_transaksi": "2026-04-27 21:33:28", "tgl_input": "2026-04-27 21:33:28", "user_input": "ADMIN", "kodesupel": "SP0071", "nama_supplier": "SINAR CEMERLANG AUTO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "12300000.00", "keterangan": ""}, {"notransaksi": "0726/BH/UTM/0426", "tgl_transaksi": "2026-04-27 21:33:11", "tgl_input": "2026-04-27 21:33:11", "user_input": "ADMIN", "kodesupel": "SP0071", "nama_supplier": "SINAR CEMERLANG AUTO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "10950000.00", "keterangan": ""}, {"notransaksi": "0725/BH/UTM/0426", "tgl_transaksi": "2026-04-27 21:32:25", "tgl_input": "2026-04-27 21:32:25", "user_input": "ADMIN", "kodesupel": "SU0037", "nama_supplier": "MISI", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "11700000.00", "keterangan": ""}, {"notransaksi": "0724/BH/UTM/0426", "tgl_transaksi": "2026-04-27 20:04:09", "tgl_input": "2026-04-27 20:04:09", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "40585000.00", "keterangan": ""}, {"notransaksi": "0723/BH/UTM/0426", "tgl_transaksi": "2026-04-27 19:56:48", "tgl_input": "2026-04-27 19:56:48", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "11760000.00", "keterangan": ""}, {"notransaksi": "0722/BH/UTM/0426", "tgl_transaksi": "2026-04-27 19:52:04", "tgl_input": "2026-04-27 19:52:04", "user_input": "ADMIN", "kodesupel": "SU0047", "nama_supplier": "PT. GEMILANG TUNTAS OTOMOTIF", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "18205000.00", "keterangan": ""}, {"notransaksi": "0721/BH/UTM/1225", "tgl_transaksi": "2025-12-13 17:10:47", "tgl_input": "2025-12-13 17:10:47", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "34852400.00", "keterangan": ""}, {"notransaksi": "0720/BH/UTM/1225", "tgl_transaksi": "2025-12-13 17:10:03", "tgl_input": "2025-12-13 17:10:03", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "151000.00", "keterangan": ""}, {"notransaksi": "0719/BH/UTM/1125", "tgl_transaksi": "2025-11-15 10:31:14", "tgl_input": "2025-11-25 10:31:14", "user_input": "ADMIN", "kodesupel": "SU0001", "nama_supplier": "ABADI DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4410000.00", "keterangan": ""}, {"notransaksi": "0709/BH/UTM/0925", "tgl_transaksi": "2025-01-13 10:32:37", "tgl_input": "2025-09-24 10:35:54", "user_input": "ADMIN", "kodesupel": "SU0061", "nama_supplier": "TOKO SURYA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "32500000.00", "keterangan": ""}, {"notransaksi": "0710/BH/UTM/0925", "tgl_transaksi": "2025-01-29 10:33:15", "tgl_input": "2025-09-24 10:35:38", "user_input": "ADMIN", "kodesupel": "SU0061", "nama_supplier": "TOKO SURYA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "48790000.00", "keterangan": ""}, {"notransaksi": "0708/BH/UTM/0925", "tgl_transaksi": "2025-01-09 10:32:15", "tgl_input": "2025-09-24 10:32:15", "user_input": "ADMIN", "kodesupel": "SU0061", "nama_supplier": "TOKO SURYA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "28950000.00", "keterangan": ""}, {"notransaksi": "0621/BH/UTM/0925", "tgl_transaksi": "2025-09-12 19:40:41", "tgl_input": "2025-09-12 19:40:41", "user_input": "ADMIN", "kodesupel": "SU0049", "nama_supplier": "PT. JARUM MAS INDONESIA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "20800.00", "keterangan": ""}, {"notransaksi": "0620/BH/UTM/0925", "tgl_transaksi": "2025-09-05 19:27:20", "tgl_input": "2025-09-12 19:27:20", "user_input": "ADMIN", "kodesupel": "SP0082", "nama_supplier": "PT. GLOBAL TWINDO PERKASA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "140147400.00", "keterangan": ""}, {"notransaksi": "0619/BH/UTM/0925", "tgl_transaksi": "2025-09-12 19:22:59", "tgl_input": "2025-09-12 19:22:59", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3440000.00", "keterangan": ""}, {"notransaksi": "0618/BH/UTM/0925", "tgl_transaksi": "2025-09-12 19:19:13", "tgl_input": "2025-09-12 19:19:13", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "19200000.00", "keterangan": ""}, {"notransaksi": "0617/BH/UTM/0925", "tgl_transaksi": "2025-09-12 19:13:21", "tgl_input": "2025-09-12 19:13:21", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "40810000.00", "keterangan": ""}, {"notransaksi": "0616/BH/UTM/0925", "tgl_transaksi": "2025-09-12 19:10:29", "tgl_input": "2025-09-12 19:10:29", "user_input": "ADMIN", "kodesupel": "SU0047", "nama_supplier": "PT. GEMILANG TUNTAS OTOMOTIF", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "20675000.00", "keterangan": ""}, {"notransaksi": "0615/BH/UTM/0925", "tgl_transaksi": "2025-08-26 22:08:20", "tgl_input": "2025-09-11 22:08:20", "user_input": "ADMIN", "kodesupel": "SU0010", "nama_supplier": "BINTANG DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4100000.00", "keterangan": ""}, {"notransaksi": "0614/BH/UTM/0825", "tgl_transaksi": "2025-08-26 18:30:19", "tgl_input": "2025-08-26 18:30:19", "user_input": "ADMIN", "kodesupel": "SP0081", "nama_supplier": "SEJAHTERA ALAM GEMPITA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "550000.00", "keterangan": ""}, {"notransaksi": "0613/BH/UTM/0825", "tgl_transaksi": "2025-08-26 18:29:57", "tgl_input": "2025-08-26 18:29:57", "user_input": "ADMIN", "kodesupel": "SP0070", "nama_supplier": "MATARAM MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2800000.00", "keterangan": ""}, {"notransaksi": "0612/BH/UTM/0825", "tgl_transaksi": "2025-08-26 18:29:22", "tgl_input": "2025-08-26 18:29:22", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2000000.00", "keterangan": ""}, {"notransaksi": "0611/BH/UTM/0825", "tgl_transaksi": "2025-08-26 18:21:08", "tgl_input": "2025-08-26 18:21:08", "user_input": "ADMIN", "kodesupel": "SP0081", "nama_supplier": "SEJAHTERA ALAM GEMPITA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4775000.00", "keterangan": ""}, {"notransaksi": "0610/BH/UTM/0825", "tgl_transaksi": "2025-08-26 18:19:48", "tgl_input": "2025-08-26 18:19:48", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2450000.00", "keterangan": ""}, {"notransaksi": "0609/BH/UTM/0825", "tgl_transaksi": "2025-08-26 18:18:52", "tgl_input": "2025-08-26 18:18:52", "user_input": "ADMIN", "kodesupel": "SP0070", "nama_supplier": "MATARAM MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1950000.00", "keterangan": ""}, {"notransaksi": "0608/BH/UTM/0825", "tgl_transaksi": "2025-08-26 17:01:31", "tgl_input": "2025-08-26 17:01:31", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2198500.00", "keterangan": ""}, {"notransaksi": "0607/BH/UTM/0825", "tgl_transaksi": "2025-08-26 17:01:04", "tgl_input": "2025-08-26 17:01:04", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "7763700.00", "keterangan": ""}, {"notransaksi": "0606/BH/UTM/0825", "tgl_transaksi": "2025-08-26 16:33:33", "tgl_input": "2025-08-26 16:33:33", "user_input": "ADMIN", "kodesupel": "SU0047", "nama_supplier": "PT. GEMILANG TUNTAS OTOMOTIF", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "16800000.00", "keterangan": ""}, {"notransaksi": "0605/BH/UTM/0825", "tgl_transaksi": "2025-08-26 16:33:08", "tgl_input": "2025-08-26 16:33:08", "user_input": "ADMIN", "kodesupel": "SU0028", "nama_supplier": "JONI BALI (SUMBER CAHAYA DIESEL)", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "25100000.00", "keterangan": ""}, {"notransaksi": "0604/BH/UTM/0825", "tgl_transaksi": "2025-08-26 16:32:40", "tgl_input": "2025-08-26 16:32:40", "user_input": "ADMIN", "kodesupel": "SP0067", "nama_supplier": "HARAPAN TEKNIK", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "10000000.00", "keterangan": ""}, {"notransaksi": "0603/BH/UTM/0825", "tgl_transaksi": "2025-08-26 16:30:40", "tgl_input": "2025-08-26 16:30:40", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "33260000.00", "keterangan": ""}, {"notransaksi": "0602/BH/UTM/0825", "tgl_transaksi": "2025-08-07 09:42:43", "tgl_input": "2025-08-19 09:42:43", "user_input": "ADMIN", "kodesupel": "SU0049", "nama_supplier": "PT. JARUM MAS INDONESIA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "80004.00", "keterangan": ""}, {"notransaksi": "0601/BH/UTM/0825", "tgl_transaksi": "2025-08-07 14:58:22", "tgl_input": "2025-08-09 14:58:22", "user_input": "ADMIN", "kodesupel": "SP0071", "nama_supplier": "SINAR CEMERLANG AUTO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "17550000.00", "keterangan": ""}, {"notransaksi": "0600/BH/UTM/0725", "tgl_transaksi": "2025-06-21 20:54:58", "tgl_input": "2025-07-31 20:54:58", "user_input": "ADMIN", "kodesupel": "SU0064", "nama_supplier": "UMUM", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "160000.00", "keterangan": ""}, {"notransaksi": "0599/BH/UTM/0725", "tgl_transaksi": "2025-04-23 20:53:55", "tgl_input": "2025-07-31 20:53:55", "user_input": "ADMIN", "kodesupel": "SU0045", "nama_supplier": "PT. ASIAN BEARINDO SEJAHTERA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "450000.00", "keterangan": ""}, {"notransaksi": "0598/BH/UTM/0725", "tgl_transaksi": "2025-05-28 20:51:47", "tgl_input": "2025-07-31 20:51:47", "user_input": "ADMIN", "kodesupel": "SU0046", "nama_supplier": "PT. TIANLI INDOPART MAJU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "714840.00", "keterangan": ""}, {"notransaksi": "0597/BH/UTM/0725", "tgl_transaksi": "2025-05-26 20:49:23", "tgl_input": "2025-07-31 20:49:23", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "8250000.00", "keterangan": ""}, {"notransaksi": "0596/BH/UTM/0725", "tgl_transaksi": "2025-05-22 20:46:33", "tgl_input": "2025-07-31 20:46:33", "user_input": "ADMIN", "kodesupel": "SU0061", "nama_supplier": "TOKO SURYA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "3400000.00", "keterangan": ""}, {"notransaksi": "0595/BH/UTM/0725", "tgl_transaksi": "2025-04-01 20:33:06", "tgl_input": "2025-07-31 20:33:06", "user_input": "ADMIN", "kodesupel": "SU0045", "nama_supplier": "PT. ASIAN BEARINDO SEJAHTERA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "300000.00", "keterangan": ""}, {"notransaksi": "0594/BH/UTM/0725", "tgl_transaksi": "2025-05-01 20:28:49", "tgl_input": "2025-07-31 20:28:49", "user_input": "ADMIN", "kodesupel": "SU0024", "nama_supplier": "INDO SEAL", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "150000.00", "keterangan": ""}, {"notransaksi": "0593/BH/UTM/0725", "tgl_transaksi": "2025-05-09 20:13:34", "tgl_input": "2025-07-31 20:13:34", "user_input": "ADMIN", "kodesupel": "SP0071", "nama_supplier": "SINAR CEMERLANG AUTO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "29300000.00", "keterangan": ""}, {"notransaksi": "0592/BH/UTM/0725", "tgl_transaksi": "2025-05-27 19:50:40", "tgl_input": "2025-07-31 19:50:40", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4470000.00", "keterangan": ""}, {"notransaksi": "0591/BH/UTM/0725", "tgl_transaksi": "2025-05-20 19:49:44", "tgl_input": "2025-07-31 19:49:44", "user_input": "ADMIN", "kodesupel": "SU0045", "nama_supplier": "PT. ASIAN BEARINDO SEJAHTERA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "800000.00", "keterangan": ""}, {"notransaksi": "0590/BH/UTM/0725", "tgl_transaksi": "2025-06-24 18:12:23", "tgl_input": "2025-07-31 18:12:23", "user_input": "ADMIN", "kodesupel": "SU0044", "nama_supplier": "PT FAKTA JAYA MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "8800000.00", "keterangan": ""}, {"notransaksi": "0589/BH/UTM/0725", "tgl_transaksi": "2025-06-23 18:11:48", "tgl_input": "2025-07-31 18:11:48", "user_input": "ADMIN", "kodesupel": "SU0044", "nama_supplier": "PT FAKTA JAYA MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4000000.00", "keterangan": ""}, {"notransaksi": "0588/BH/UTM/0725", "tgl_transaksi": "2025-06-23 17:48:32", "tgl_input": "2025-07-31 17:48:32", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1950000.00", "keterangan": ""}, {"notransaksi": "0587/BH/UTM/0725", "tgl_transaksi": "2025-06-23 17:48:12", "tgl_input": "2025-07-31 17:48:12", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1900000.00", "keterangan": ""}, {"notransaksi": "0586/BH/UTM/0725", "tgl_transaksi": "2025-07-08 14:44:33", "tgl_input": "2025-07-30 14:44:33", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "5800000.00", "keterangan": ""}, {"notransaksi": "0585/BH/UTM/0725", "tgl_transaksi": "2025-07-08 14:42:21", "tgl_input": "2025-07-30 14:42:27", "user_input": "ADMIN", "kodesupel": "SP0070", "nama_supplier": "MATARAM MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3250000.00", "keterangan": ""}, {"notransaksi": "0584/BH/UTM/0725", "tgl_transaksi": "2025-04-24 14:30:19", "tgl_input": "2025-07-30 14:30:19", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "18085000.00", "keterangan": ""}, {"notransaksi": "0583/BH/UTM/0725", "tgl_transaksi": "2025-03-12 14:27:48", "tgl_input": "2025-07-30 14:27:48", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "22570000.00", "keterangan": ""}, {"notransaksi": "0582/BH/UTM/0725", "tgl_transaksi": "2025-03-12 14:23:57", "tgl_input": "2025-07-30 14:23:57", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "29695000.00", "keterangan": ""}, {"notransaksi": "0581/BH/UTM/0725", "tgl_transaksi": "2025-04-24 14:19:32", "tgl_input": "2025-07-30 14:19:32", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "22510000.00", "keterangan": ""}, {"notransaksi": "0580/BH/UTM/0725", "tgl_transaksi": "2025-04-24 14:13:44", "tgl_input": "2025-07-30 14:13:44", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "5550000.00", "keterangan": ""}, {"notransaksi": "0579/BH/UTM/0725", "tgl_transaksi": "2025-04-24 14:08:39", "tgl_input": "2025-07-30 14:08:39", "user_input": "ADMIN", "kodesupel": "SU0047", "nama_supplier": "PT. GEMILANG TUNTAS OTOMOTIF", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "53800000.00", "keterangan": ""}, {"notransaksi": "0578/BH/UTM/0725", "tgl_transaksi": "2025-04-24 14:07:32", "tgl_input": "2025-07-30 14:07:32", "user_input": "ADMIN", "kodesupel": "SU0047", "nama_supplier": "PT. GEMILANG TUNTAS OTOMOTIF", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "10453000.00", "keterangan": ""}, {"notransaksi": "0577/BH/UTM/0725", "tgl_transaksi": "2025-04-24 14:06:48", "tgl_input": "2025-07-30 14:06:48", "user_input": "ADMIN", "kodesupel": "SU0047", "nama_supplier": "PT. GEMILANG TUNTAS OTOMOTIF", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4125000.00", "keterangan": ""}, {"notransaksi": "0576/BH/UTM/0725", "tgl_transaksi": "2025-04-24 14:05:06", "tgl_input": "2025-07-30 14:05:06", "user_input": "ADMIN", "kodesupel": "SP0071", "nama_supplier": "SINAR CEMERLANG AUTO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "8800000.00", "keterangan": ""}, {"notransaksi": "0575/BH/UTM/0725", "tgl_transaksi": "2025-07-07 14:02:40", "tgl_input": "2025-07-30 14:02:40", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "866900.00", "keterangan": ""}, {"notransaksi": "0574/BH/UTM/0725", "tgl_transaksi": "2025-07-07 14:01:54", "tgl_input": "2025-07-30 14:01:54", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "360000.00", "keterangan": ""}, {"notransaksi": "0573/BH/UTM/0725", "tgl_transaksi": "2025-07-07 14:00:48", "tgl_input": "2025-07-30 14:00:48", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3069300.00", "keterangan": ""}, {"notransaksi": "0572/BH/UTM/0725", "tgl_transaksi": "2025-07-07 14:00:20", "tgl_input": "2025-07-30 14:00:20", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "32000.00", "keterangan": ""}, {"notransaksi": "0571/BH/UTM/0725", "tgl_transaksi": "2025-07-07 13:59:58", "tgl_input": "2025-07-30 13:59:58", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "135000.00", "keterangan": ""}, {"notransaksi": "0570/BH/UTM/0725", "tgl_transaksi": "2025-07-08 13:59:30", "tgl_input": "2025-07-30 13:59:30", "user_input": "ADMIN", "kodesupel": "SP0080", "nama_supplier": "HARAPAN JAYA MAKMUR (HJM)", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "13035000.00", "keterangan": ""}, {"notransaksi": "0569/BH/UTM/0725", "tgl_transaksi": "2025-07-08 13:57:39", "tgl_input": "2025-07-30 13:57:39", "user_input": "ADMIN", "kodesupel": "SU0047", "nama_supplier": "PT. GEMILANG TUNTAS OTOMOTIF", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "7000000.00", "keterangan": ""}, {"notransaksi": "0568/BH/UTM/0725", "tgl_transaksi": "2025-03-27 13:57:08", "tgl_input": "2025-07-30 13:57:08", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2775000.00", "keterangan": ""}, {"notransaksi": "0567/BH/UTM/0725", "tgl_transaksi": "2025-04-14 13:56:35", "tgl_input": "2025-07-30 13:56:35", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "52140000.00", "keterangan": ""}, {"notransaksi": "0566/BH/UTM/0725", "tgl_transaksi": "2025-04-24 13:56:04", "tgl_input": "2025-07-30 13:56:04", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "1100000.00", "keterangan": ""}, {"notransaksi": "0565/BH/UTM/0725", "tgl_transaksi": "2025-04-30 13:55:23", "tgl_input": "2025-07-30 13:55:23", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3125000.00", "keterangan": ""}, {"notransaksi": "0564/BH/UTM/0725", "tgl_transaksi": "2025-03-27 13:54:55", "tgl_input": "2025-07-30 13:54:55", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "3125000.00", "keterangan": ""}, {"notransaksi": "0563/BH/UTM/0725", "tgl_transaksi": "2025-07-07 13:54:16", "tgl_input": "2025-07-30 13:54:16", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "15000000.00", "keterangan": ""}, {"notransaksi": "0562/BH/UTM/0725", "tgl_transaksi": "2025-07-28 13:53:16", "tgl_input": "2025-07-30 13:53:16", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "22750000.00", "keterangan": ""}, {"notransaksi": "0561/BH/UTM/0725", "tgl_transaksi": "2025-07-28 13:51:37", "tgl_input": "2025-07-30 13:51:37", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "20035000.00", "keterangan": ""}, {"notransaksi": "0560/BH/UTM/0725", "tgl_transaksi": "2025-07-28 13:50:22", "tgl_input": "2025-07-30 13:50:22", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "5750000.00", "keterangan": ""}, {"notransaksi": "0559/BH/UTM/0725", "tgl_transaksi": "2025-07-28 13:46:23", "tgl_input": "2025-07-30 13:46:23", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "12132000.00", "keterangan": ""}, {"notransaksi": "0558/BH/UTM/0725", "tgl_transaksi": "2025-07-08 18:08:06", "tgl_input": "2025-07-08 18:08:06", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "18130000.00", "keterangan": ""}, {"notransaksi": "0557/BH/UTM/0725", "tgl_transaksi": "2025-07-08 18:01:29", "tgl_input": "2025-07-08 18:01:29", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "19370000.00", "keterangan": ""}, {"notransaksi": "0556/BH/UTM/0325", "tgl_transaksi": "2025-03-12 16:45:53", "tgl_input": "2025-03-12 16:45:53", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4628400.00", "keterangan": ""}, {"notransaksi": "0555/BH/UTM/0325", "tgl_transaksi": "2025-03-12 16:45:23", "tgl_input": "2025-03-12 16:45:23", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "11482800.00", "keterangan": ""}, {"notransaksi": "0554/BH/UTM/0325", "tgl_transaksi": "2025-02-01 18:22:40", "tgl_input": "2025-03-11 18:22:40", "user_input": "ADMIN", "kodesupel": "SU0046", "nama_supplier": "PT. TIANLI INDOPART MAJU", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "199800.00", "keterangan": ""}, {"notransaksi": "0553/BH/UTM/0325", "tgl_transaksi": "2025-02-01 18:22:01", "tgl_input": "2025-03-11 18:22:01", "user_input": "ADMIN", "kodesupel": "SU0018", "nama_supplier": "DWI JAYA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "3000000.00", "keterangan": ""}, {"notransaksi": "0552/BH/UTM/0325", "tgl_transaksi": "2025-02-08 18:21:36", "tgl_input": "2025-03-11 18:21:36", "user_input": "ADMIN", "kodesupel": "SU0053", "nama_supplier": "PT.WIRA KARYA SEMPURNA", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "1472000.00", "keterangan": ""}, {"notransaksi": "0551/BH/UTM/0325", "tgl_transaksi": "2025-02-12 18:21:11", "tgl_input": "2025-03-11 18:21:11", "user_input": "ADMIN", "kodesupel": "SU0063", "nama_supplier": "UD. BINA SEJAHTERA DIESEL", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "55000.00", "keterangan": ""}, {"notransaksi": "0550/BH/UTM/0325", "tgl_transaksi": "2025-02-13 18:20:52", "tgl_input": "2025-03-11 18:20:52", "user_input": "ADMIN", "kodesupel": "SU0064", "nama_supplier": "UMUM", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "3214000.00", "keterangan": ""}, {"notransaksi": "0549/BH/UTM/0325", "tgl_transaksi": "2025-03-10 17:15:44", "tgl_input": "2025-03-10 17:15:44", "user_input": "ADMIN", "kodesupel": "SP0073", "nama_supplier": "SURYA UTAMA DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "44650000.00", "keterangan": ""}, {"notransaksi": "0548/BH/UTM/0325", "tgl_transaksi": "2025-01-21 17:14:52", "tgl_input": "2025-03-10 17:14:52", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "14945000.00", "keterangan": ""}, {"notransaksi": "0547/BH/UTM/0325", "tgl_transaksi": "2025-01-21 16:55:17", "tgl_input": "2025-03-10 16:55:17", "user_input": "ADMIN", "kodesupel": "SU0057", "nama_supplier": "SUBARU", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "17225000.00", "keterangan": ""}, {"notransaksi": "0546/BH/UTM/0325", "tgl_transaksi": "2025-03-10 13:17:26", "tgl_input": "2025-03-10 13:17:26", "user_input": "ADMIN", "kodesupel": "SU0064", "nama_supplier": "UMUM", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "4000000.00", "keterangan": ""}, {"notransaksi": "0545/BH/UTM/0325", "tgl_transaksi": "2025-02-26 11:13:39", "tgl_input": "2025-03-03 11:13:39", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "9227100.00", "keterangan": ""}, {"notransaksi": "0544/BH/UTM/0325", "tgl_transaksi": "2025-02-26 11:13:10", "tgl_input": "2025-03-03 11:13:10", "user_input": "ADMIN", "kodesupel": "SU0015", "nama_supplier": "CV. MAJU JAYA JAKARTA", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "5520000.00", "keterangan": ""}, {"notransaksi": "0543/BH/UTM/0225", "tgl_transaksi": "2025-02-21 17:26:59", "tgl_input": "2025-02-21 17:26:59", "user_input": "ADMIN", "kodesupel": "SP0071", "nama_supplier": "SINAR CEMERLANG AUTO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "42650000.00", "keterangan": ""}, {"notransaksi": "0542/BH/UTM/0225", "tgl_transaksi": "2025-02-06 15:09:04", "tgl_input": "2025-02-19 15:09:04", "user_input": "ADMIN", "kodesupel": "SU0001", "nama_supplier": "ABADI DIESEL", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "29000000.00", "keterangan": ""}, {"notransaksi": "0541/BH/UTM/0225", "tgl_transaksi": "2025-02-06 15:07:53", "tgl_input": "2025-02-19 15:07:53", "user_input": "ADMIN", "kodesupel": "SP0067", "nama_supplier": "HARAPAN TEKNIK", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "23000000.00", "keterangan": ""}, {"notransaksi": "0539/BH/UTM/0225", "tgl_transaksi": "2025-01-09 14:27:04", "tgl_input": "2025-02-19 14:27:04", "user_input": "ADMIN", "kodesupel": "SU0048", "nama_supplier": "PT. HERMAN INTERCO", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "8124000.00", "keterangan": ""}, {"notransaksi": "0538/BH/UTM/0125", "tgl_transaksi": "2025-01-21 15:30:51", "tgl_input": "2025-01-21 15:30:51", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "1725000.00", "keterangan": ""}, {"notransaksi": "0537/BH/UTM/0125", "tgl_transaksi": "2025-01-21 15:30:35", "tgl_input": "2025-01-21 15:30:35", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "5800000.00", "keterangan": ""}, {"notransaksi": "0536/BH/UTM/0125", "tgl_transaksi": "2025-01-21 15:30:16", "tgl_input": "2025-01-21 15:30:16", "user_input": "ADMIN", "kodesupel": "SU0051", "nama_supplier": "PT.GEMILANG AUTO SUKSES", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2975000.00", "keterangan": ""}, {"notransaksi": "0535/BH/UTM/0125", "tgl_transaksi": "2025-01-21 15:27:26", "tgl_input": "2025-01-21 15:27:26", "user_input": "ADMIN", "kodesupel": "SP0070", "nama_supplier": "MATARAM MOTOR", "akun_kas_bank": "KAS KECIL", "carabayar": "TN", "totalbayar": "700000.00", "keterangan": ""}, {"notransaksi": "0534/BH/UTM/0125", "tgl_transaksi": "2025-01-21 15:27:12", "tgl_input": "2025-01-21 15:27:12", "user_input": "ADMIN", "kodesupel": "SP0070", "nama_supplier": "MATARAM MOTOR", "akun_kas_bank": "BANK BCA", "carabayar": "TN", "totalbayar": "2800000.00", "keterangan": ""}];
+
+    function formatRupiah(num) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-white', 'border-amber-400');
+        btn.classList.add('text-indigo-300', 'border-transparent');
+      });
+
+      document.getElementById(tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('text-white', 'border-amber-400');
+        activeBtn.classList.remove('text-indigo-300', 'border-transparent');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Render Piutang
+    function renderPiutang(list) {
+      const tbody = document.getElementById('tbody-piutang');
+      const cards = document.getElementById('cards-piutang');
+      tbody.innerHTML = '';
+      cards.innerHTML = '';
+
+      document.getElementById('count-piutang-label').textContent = `Menampilkan ${list.length} transaksi`;
+
+      list.forEach((item, idx) => {
+        const nom = parseFloat(item.totalbayar);
+        
+        // Table row
+        const tr = document.createElement('tr');
+        tr.className = idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/50 hover:bg-slate-50';
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-medium text-indigo-900">${item.notransaksi}</td>
+          <td class="p-3 bg-amber-50/60 font-semibold text-amber-950 border-x border-amber-100 whitespace-nowrap">${item.tgl_input}</td>
+          <td class="p-3 text-slate-600 whitespace-nowrap">${item.tgl_transaksi}</td>
+          <td class="p-3 font-semibold text-slate-800">${item.nama_pelanggan}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-medium ${item.akun_kas_bank.includes('BCA') ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">${item.akun_kas_bank}</span></td>
+          <td class="p-3 text-right font-bold text-emerald-700 whitespace-nowrap">${formatRupiah(nom)}</td>
+          <td class="p-3 text-slate-400 font-mono text-[11px]">${item.user_input}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // Mobile Card
+        const card = document.createElement('div');
+        card.className = 'p-3.5 bg-white space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-indigo-950">${item.notransaksi}</span>
+            <span class="text-xs font-black text-emerald-700">${formatRupiah(nom)}</span>
+          </div>
+          <div class="text-sm font-bold text-slate-800">${item.nama_pelanggan}</div>
+          
+          <!-- Tanggal Input Highlighted Box for Mobile -->
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs flex items-center justify-between">
+            <span class="text-amber-800 font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Tgl Input:
+            </span>
+            <span class="font-bold text-amber-950 font-mono">${item.tgl_input}</span>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+            <span>Tgl Nota: <strong class="text-slate-700">${item.tgl_transaksi.substring(0, 10)}</strong></span>
+            <span class="px-2 py-0.5 rounded font-semibold ${item.akun_kas_bank.includes('BCA') ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">${item.akun_kas_bank}</span>
+          </div>
+        `;
+        cards.appendChild(card);
+      });
+    }
+
+    // Render Hutang
+    function renderHutang(list) {
+      const tbody = document.getElementById('tbody-hutang');
+      const cards = document.getElementById('cards-hutang');
+      tbody.innerHTML = '';
+      cards.innerHTML = '';
+
+      document.getElementById('count-hutang-label').textContent = `Menampilkan ${list.length} transaksi`;
+
+      list.forEach((item, idx) => {
+        const nom = parseFloat(item.totalbayar);
+        
+        // Table row
+        const tr = document.createElement('tr');
+        tr.className = idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/50 hover:bg-slate-50';
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-medium text-indigo-900">${item.notransaksi}</td>
+          <td class="p-3 bg-amber-50/60 font-semibold text-amber-950 border-x border-amber-100 whitespace-nowrap">${item.tgl_input}</td>
+          <td class="p-3 text-slate-600 whitespace-nowrap">${item.tgl_transaksi}</td>
+          <td class="p-3 font-semibold text-slate-800">${item.nama_supplier}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-medium ${item.akun_kas_bank.includes('BCA') ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">${item.akun_kas_bank}</span></td>
+          <td class="p-3 text-right font-bold text-rose-700 whitespace-nowrap">${formatRupiah(nom)}</td>
+          <td class="p-3 text-slate-400 font-mono text-[11px]">${item.user_input}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // Mobile Card
+        const card = document.createElement('div');
+        card.className = 'p-3.5 bg-white space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-indigo-950">${item.notransaksi}</span>
+            <span class="text-xs font-black text-rose-700">${formatRupiah(nom)}</span>
+          </div>
+          <div class="text-sm font-bold text-slate-800">${item.nama_supplier}</div>
+          
+          <!-- Tanggal Input Highlighted Box for Mobile -->
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs flex items-center justify-between">
+            <span class="text-amber-800 font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Tgl Input:
+            </span>
+            <span class="font-bold text-amber-950 font-mono">${item.tgl_input}</span>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+            <span>Tgl Nota: <strong class="text-slate-700">${item.tgl_transaksi.substring(0, 10)}</strong></span>
+            <span class="px-2 py-0.5 rounded font-semibold ${item.akun_kas_bank.includes('BCA') ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">${item.akun_kas_bank}</span>
+          </div>
+        `;
+        cards.appendChild(card);
+      });
+    }
+
+    function filterPiutang() {
+      const q = document.getElementById('search-piutang').value.toLowerCase();
+      const filtered = dataPiutang.filter(x => 
+        x.notransaksi.toLowerCase().includes(q) ||
+        x.nama_pelanggan.toLowerCase().includes(q) ||
+        x.akun_kas_bank.toLowerCase().includes(q) ||
+        x.tgl_input.toLowerCase().includes(q) ||
+        x.tgl_transaksi.toLowerCase().includes(q)
+      );
+      renderPiutang(filtered);
+    }
+
+    function filterHutang() {
+      const q = document.getElementById('search-hutang').value.toLowerCase();
+      const filtered = dataHutang.filter(x => 
+        x.notransaksi.toLowerCase().includes(q) ||
+        x.nama_supplier.toLowerCase().includes(q) ||
+        x.akun_kas_bank.toLowerCase().includes(q) ||
+        x.tgl_input.toLowerCase().includes(q) ||
+        x.tgl_transaksi.toLowerCase().includes(q)
+      );
+      renderHutang(filtered);
+    }
+
+    // Initial render
+    renderPiutang(dataPiutang);
+    renderHutang(dataHutang);
+  </script>
+
+</body>
+</html>

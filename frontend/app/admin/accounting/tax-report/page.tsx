@@ -26,6 +26,69 @@ import {
   Table as TableIcon,
 } from "lucide-react";
 
+export const MONTH_NAMES = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+export const YEARS = [2027, 2026, 2025, 2024, 2023, 2022, 2021, 2020];
+
+function getInitialMonthYear() {
+  const d = new Date();
+  d.setDate(1); // Mencegah loncat tanggal pada akhir bulan
+  d.setMonth(d.getMonth() - 1); // Default Bulan Ini - 1
+  const m = d.getMonth() + 1;
+  const y = d.getFullYear();
+  const fDay = new Date(y, m - 1, 1);
+  const lDay = new Date(y, m, 0);
+  const fMonth = String(fDay.getMonth() + 1).padStart(2, "0");
+  const fDate = String(fDay.getDate()).padStart(2, "0");
+  const lMonth = String(lDay.getMonth() + 1).padStart(2, "0");
+  const lDate = String(lDay.getDate()).padStart(2, "0");
+
+  return {
+    month: String(m),
+    year: String(y),
+    startDate: `${y}-${fMonth}-${fDate}`,
+    endDate: `${y}-${lMonth}-${lDate}`,
+  };
+}
+
+function calculateDateRange(month: string, year: string) {
+  if (year === "ALL") {
+    return { startDate: "", endDate: "" };
+  }
+  const y = Number(year);
+  if (month === "ALL") {
+    return {
+      startDate: `${y}-01-01`,
+      endDate: `${y}-12-31`,
+    };
+  }
+  const m = Number(month);
+  const fDay = new Date(y, m - 1, 1);
+  const lDay = new Date(y, m, 0);
+  const fMonth = String(fDay.getMonth() + 1).padStart(2, "0");
+  const fDate = String(fDay.getDate()).padStart(2, "0");
+  const lMonth = String(lDay.getMonth() + 1).padStart(2, "0");
+  const lDate = String(lDay.getDate()).padStart(2, "0");
+
+  return {
+    startDate: `${y}-${fMonth}-${fDate}`,
+    endDate: `${y}-${lMonth}-${lDate}`,
+  };
+}
+
 export default function SalesTaxReportPage() {
   const [invoices, setInvoices] = useState<TaxReportInvoice[]>([]);
   const [summary, setSummary] = useState({
@@ -40,15 +103,28 @@ export default function SalesTaxReportPage() {
   // View Mode: "table" (expandable table) or "full-detail" (iPos 4 document style)
   const [viewMode, setViewMode] = useState<"table" | "full-detail">("table");
 
-  // Filters
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  // Filters (Default: Bulan Ini - 1)
+  const [defaultMonth, setDefaultMonth] = useState<string>("10");
+  const [defaultYear, setDefaultYear] = useState<string>("2026");
+  const [selectedMonth, setSelectedMonth] = useState<string>("10");
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
+  const [startDate, setStartDate] = useState<string>("2026-10-01");
+  const [endDate, setEndDate] = useState<string>("2026-10-31");
   const [search, setSearch] = useState<string>("");
   const [hasNofp, setHasNofp] = useState<"ALL" | "YES" | "NO">("ALL");
   const [printDate, setPrintDate] = useState<string>("");
 
   useEffect(() => {
+    // Jalankan inisialisasi default Bulan Ini - 1 secara dinamis di browser
+    const init = getInitialMonthYear();
+    setDefaultMonth(init.month);
+    setDefaultYear(init.year);
+    setSelectedMonth(init.month);
+    setSelectedYear(init.year);
+    setStartDate(init.startDate);
+    setEndDate(init.endDate);
     setPrintDate(new Date().toLocaleString("id-ID"));
+    loadData(1, pageSize, init.startDate, init.endDate, search, hasNofp);
   }, []);
 
   // Pagination
@@ -113,48 +189,52 @@ export default function SalesTaxReportPage() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    loadData(1, pageSize, startDate, endDate, search, hasNofp);
+    const range = calculateDateRange(selectedMonth, selectedYear);
+    setStartDate(range.startDate);
+    setEndDate(range.endDate);
+    loadData(1, pageSize, range.startDate, range.endDate, search, hasNofp);
   };
 
   const handleResetFilters = () => {
-    setStartDate("");
-    setEndDate("");
+    const init = getInitialMonthYear();
+    setSelectedMonth(init.month);
+    setSelectedYear(init.year);
+    setStartDate(init.startDate);
+    setEndDate(init.endDate);
     setSearch("");
     setHasNofp("ALL");
     setPage(1);
-    loadData(1, pageSize, "", "", "", "ALL");
+    loadData(1, pageSize, init.startDate, init.endDate, "", "ALL");
   };
 
   // Quick Date Presets
   const applyPreset = (preset: "this-month" | "last-month" | "this-year" | "all") => {
     const now = new Date();
-    let start = "";
-    let end = "";
+    let m = "ALL";
+    let y = "ALL";
 
     if (preset === "this-month") {
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      start = firstDay.toISOString().slice(0, 10);
-      end = lastDay.toISOString().slice(0, 10);
+      m = String(now.getMonth() + 1);
+      y = String(now.getFullYear());
     } else if (preset === "last-month") {
-      const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
-      start = firstDay.toISOString().slice(0, 10);
-      end = lastDay.toISOString().slice(0, 10);
+      const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      m = String(prev.getMonth() + 1);
+      y = String(prev.getFullYear());
     } else if (preset === "this-year") {
-      const firstDay = new Date(now.getFullYear(), 0, 1);
-      const lastDay = new Date(now.getFullYear(), 11, 31);
-      start = firstDay.toISOString().slice(0, 10);
-      end = lastDay.toISOString().slice(0, 10);
+      m = "ALL";
+      y = String(now.getFullYear());
     } else if (preset === "all") {
-      start = "";
-      end = "";
+      m = "ALL";
+      y = "ALL";
     }
 
-    setStartDate(start);
-    setEndDate(end);
+    setSelectedMonth(m);
+    setSelectedYear(y);
+    const range = calculateDateRange(m, y);
+    setStartDate(range.startDate);
+    setEndDate(range.endDate);
     setPage(1);
-    loadData(1, pageSize, start, end, search, hasNofp);
+    loadData(1, pageSize, range.startDate, range.endDate, search, hasNofp);
   };
 
   // Toggle Single Row Expand
@@ -197,6 +277,18 @@ export default function SalesTaxReportPage() {
         return;
       }
 
+      let customFilename = "";
+      if (selectedYear !== "ALL") {
+        if (selectedMonth !== "ALL") {
+          const mName = MONTH_NAMES[Number(selectedMonth) - 1];
+          customFilename = `Laporan_Penjualan_Kena_Pajak_${mName}_${selectedYear}.xlsx`;
+        } else {
+          customFilename = `Laporan_Penjualan_Kena_Pajak_Tahun_${selectedYear}.xlsx`;
+        }
+      } else {
+        customFilename = `Laporan_Penjualan_Kena_Pajak_Semua_Periode.xlsx`;
+      }
+
       await exportTaxReportToExcel({
         invoices: allDataRes.items,
         summary: allDataRes.summary,
@@ -204,6 +296,7 @@ export default function SalesTaxReportPage() {
         endDate: endDate || undefined,
         searchFilter: search || undefined,
         nofpFilter: hasNofp === "ALL" ? "Semua" : hasNofp === "YES" ? "Ada NOFP" : "Tanpa NOFP",
+        customFilename,
       });
 
       toast.success(
@@ -320,8 +413,13 @@ export default function SalesTaxReportPage() {
           LAPORAN PENJUALAN DETAIL BERPAJAK
         </h1>
         <p className="text-xs text-slate-600">
-          Periode: {startDate || "Semua"} s/d {endDate || "Semua"} | Dicetak pada:{" "}
-          {printDate || "-"}
+          Periode:{" "}
+          {selectedYear !== "ALL"
+            ? selectedMonth !== "ALL"
+              ? `${MONTH_NAMES[Number(selectedMonth) - 1]} ${selectedYear}`
+              : `Tahun ${selectedYear}`
+            : "Semua Data"}
+          {" | "}Dicetak pada: {printDate || "-"}
         </p>
       </div>
 
@@ -434,28 +532,61 @@ export default function SalesTaxReportPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                <Calendar className="h-4 w-4" />
+              <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span>Periode:</span>
               </div>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              />
-              <span className="text-xs text-slate-400">s/d</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              />
+
+              {/* Selector Bulan */}
+              <select
+                value={selectedMonth}
+                onChange={(e) => {
+                  const m = e.target.value;
+                  setSelectedMonth(m);
+                  const range = calculateDateRange(m, selectedYear);
+                  setStartDate(range.startDate);
+                  setEndDate(range.endDate);
+                  setPage(1);
+                  loadData(1, pageSize, range.startDate, range.endDate, search, hasNofp);
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                title="Pilih Bulan"
+              >
+                <option value="ALL">Semua Bulan</option>
+                {MONTH_NAMES.map((name, idx) => (
+                  <option key={idx + 1} value={String(idx + 1)}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Selector Tahun */}
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  const y = e.target.value;
+                  setSelectedYear(y);
+                  const range = calculateDateRange(selectedMonth, y);
+                  setStartDate(range.startDate);
+                  setEndDate(range.endDate);
+                  setPage(1);
+                  loadData(1, pageSize, range.startDate, range.endDate, search, hasNofp);
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                title="Pilih Tahun"
+              >
+                <option value="ALL">Semua Tahun</option>
+                {YEARS.map((y) => (
+                  <option key={y} value={String(y)}>
+                    {y}
+                  </option>
+                ))}
+              </select>
 
               <select
                 value={hasNofp}
                 onChange={(e) => setHasNofp(e.target.value as any)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
               >
                 <option value="ALL">Semua Faktur Pajak</option>
                 <option value="YES">Ada No. FP</option>
@@ -469,7 +600,7 @@ export default function SalesTaxReportPage() {
                 Terapkan
               </button>
 
-              {(startDate || endDate || search || hasNofp !== "ALL") && (
+              {(selectedMonth !== defaultMonth || selectedYear !== defaultYear || search || hasNofp !== "ALL") && (
                 <button
                   type="button"
                   onClick={handleResetFilters}

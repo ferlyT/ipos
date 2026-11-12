@@ -1,12 +1,13 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/stores/auth.store";
 import { useMounted } from "@/hooks/use-mounted";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { api } from "@/lib/api-client";
 import {
   LayoutDashboard,
   Package,
@@ -39,6 +40,7 @@ import {
   MapPin,
   CalendarSync,
   LogOut,
+  History,
 } from "lucide-react";
 
 const NAV_GROUPS = [
@@ -59,6 +61,7 @@ const NAV_GROUPS = [
       { href: "/admin/wms/tasks", label: "Tugas Gudang (Kanban)", icon: ClipboardList },
       { href: "/admin/wms/bins", label: "Master Lokasi Rak", icon: MapPin },
       { href: "/admin/inventory/stock", label: "Stok Multi-Gudang", icon: Boxes },
+      { href: "/admin/inventory/mutation", label: "Mutasi & Kartu Stok", icon: History },
       { href: "/admin/inventory/transfer", label: "Transfer Antar-Gudang", icon: ArrowRightLeft },
       { href: "/admin/inventory/opname", label: "Stok Opname Fisik", icon: ClipboardCheck },
     ],
@@ -103,6 +106,40 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const mounted = useMounted();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+
+  const [systemInfo, setSystemInfo] = useState<{
+    companyName: string;
+    database: string;
+    port: number | string;
+  }>({
+    companyName: "CV. BARUNA ARTHA LESTARI",
+    database: "",
+    port: 5444,
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    api.system
+      .getHealth()
+      .then((res: any) => {
+        if (!isMounted) return;
+        const data = res?.data || res;
+        if (data?.database) {
+          setSystemInfo({
+            companyName: data.companyName || "CV. BARUNA ARTHA LESTARI",
+            database: data.database,
+            port: data.port || 5444,
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn("Gagal memuat status sistem:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -199,10 +236,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         {/* Top Header */}
         <header className="h-16 bg-zinc-900/50 border-b border-zinc-800 px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-2 text-xs text-zinc-400">
-            <Store className="w-4 h-4 text-zinc-400" />
-            <span className="font-semibold text-zinc-200">CV. BARUNA ARTHA LESTARI</span>
+            <Store className="w-4 h-4 text-emerald-400" />
+            <span className="font-semibold text-zinc-200" suppressHydrationWarning>
+              {systemInfo.companyName}
+            </span>
             <span>•</span>
-            <span className="text-zinc-400">Database: i4_barunatrial (Port 5444)</span>
+            <span className="text-zinc-400" suppressHydrationWarning>
+              Database: <span className="font-mono text-zinc-200 font-medium">{systemInfo.database || "i4_baruna31okt26"}</span> (Port {systemInfo.port})
+            </span>
           </div>
 
           <div className="flex items-center space-x-3 text-xs">

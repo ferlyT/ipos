@@ -22,6 +22,7 @@
     "migrate:audit": "bun run src/run_audit_migration.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:wms": "bun run src/run_wms_migration.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },

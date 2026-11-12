@@ -389,43 +389,43 @@ export default function PeriodClosingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 text-xs">
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-[10px] font-mono">1</span>
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-[10px] font-mono font-bold shrink-0">1</span>
                   Hitung Mutasi Stok
                 </div>
-                <div className="text-zinc-500 text-[11px]">
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
                   Akumulasi kuantitas masuk, keluar, dan penyesuaian opname di seluruh gudang.
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-[10px] font-mono">2</span>
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-[10px] font-mono font-bold shrink-0">2</span>
                   Update Nilai HPP
                 </div>
-                <div className="text-zinc-500 text-[11px]">
-                  Hitung harga pokok rata-rata dan nilai persediaan akhir di <code className="text-zinc-400">tbl_item_rekap</code>.
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
+                  Hitung harga pokok rata-rata dan nilai persediaan akhir di <code className="text-zinc-300 font-mono">tbl_item_rekap</code>.
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-[10px] font-mono">3</span>
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-[10px] font-mono font-bold shrink-0">3</span>
                   Transfer Batch FIFO
                 </div>
-                <div className="text-zinc-500 text-[11px]">
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
                   Batch masuk yang belum habis dipindahkan otomatis menjadi saldo awal bulan depan.
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-[10px] font-mono">4</span>
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-[10px] font-mono font-bold shrink-0">4</span>
                   Kunci & Majukan Periode
                 </div>
-                <div className="text-zinc-500 text-[11px]">
-                  Konfigurasi <code className="text-zinc-400">ACC_CURRENT_MONTH</code> dimajukan dan periode lama dikunci.
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
+                  Konfigurasi <code className="text-zinc-300 font-mono">ACC_CURRENT_MONTH</code> dimajukan dan periode lama dikunci.
                 </div>
               </div>
             </div>
@@ -638,43 +638,43 @@ export default function PeriodClosingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 text-xs">
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
                   <Database className="w-4 h-4 text-emerald-400" />
                   Auto-Backup Database
                 </div>
-                <div className="text-zinc-500 text-[11px]">
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
                   Dump binary pg_dump dieksekusi otomatis sebagai proteksi sebelum modifikasi saldo awal tahun.
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
                   <Receipt className="w-4 h-4 text-blue-400" />
                   Jurnal Penutup Laba
                 </div>
-                <div className="text-zinc-500 text-[11px]">
-                  Membuat jurnal khusus <code className="text-zinc-400">JUR-CLOSE-YYYY</code> mentransfer 3-3000 ke 3-2000.
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
+                  Membuat jurnal khusus <code className="text-zinc-300 font-mono">JUR-CLOSE-YYYY</code> mentransfer 3-3000 ke 3-2000.
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
                   <FileSpreadsheet className="w-4 h-4 text-purple-400" />
                   Rollover Neraca
                 </div>
-                <div className="text-zinc-500 text-[11px]">
-                  Saldo akhir kas, bank, piutang, hutang, dan aset disalin ke saldo awal tahun baru di <code className="text-zinc-400">tbl_acc_sa</code>.
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
+                  Saldo akhir kas, bank, piutang, hutang, dan aset disalin ke saldo awal tahun baru di <code className="text-zinc-300 font-mono">tbl_acc_sa</code>.
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80">
-                <div className="font-bold text-zinc-300 mb-1 flex items-center gap-1.5">
+              <div className="p-3 bg-zinc-800/40 rounded-lg border border-zinc-800/80">
+                <div className="font-bold text-zinc-200 mb-1 flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-amber-400" />
                   Kunci Tahun & Buka Baru
                 </div>
-                <div className="text-zinc-500 text-[11px]">
-                  Konfigurasi <code className="text-zinc-400">ACC_CURRENT_YEAR</code> dimajukan dan pembukuan tahun lama dikunci.
+                <div className="text-zinc-400 text-[11px] leading-relaxed">
+                  Konfigurasi <code className="text-zinc-300 font-mono">ACC_CURRENT_YEAR</code> dimajukan dan pembukuan tahun lama dikunci.
                 </div>
               </div>
             </div>

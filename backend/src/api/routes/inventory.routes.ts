@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { db } from "../../db";
 import { FifoInventoryService } from "../../services/fifo-inventory.service";
 import { WarehouseConsignmentService } from "../../services/warehouse-consignment.service";
+import { InventoryMutationService } from "../../services/inventory-mutation.service";
 import type { ApiRouter } from "../router";
 import { parsePagination, formatPaginatedResponse } from "../pagination";
 
@@ -222,5 +223,51 @@ export function registerInventoryRoutes(router: ApiRouter) {
     const supplierCode = ctx.query.supplierCode;
     const summary = await WarehouseConsignmentService.getConsignmentSummary(supplierCode);
     return ctx.json(summary);
+  });
+
+  // GET /api/inventory/mutations/summary - Rekapitulasi Mutasi Item Periode
+  router.get("/api/inventory/mutations/summary", async (ctx) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const startDate = ctx.query.startDate || `${today.slice(0, 7)}-01`;
+    const endDate = ctx.query.endDate || today;
+    const office = ctx.query.office || "UTM";
+    const search = ctx.query.search || "";
+    const page = parseInt(ctx.query.page || "1", 10) || 1;
+    const limit = ctx.query.limit !== undefined ? parseInt(ctx.query.limit, 10) : 25;
+
+    const data = await InventoryMutationService.getMutationSummary({
+      startDate,
+      endDate,
+      office,
+      search,
+      page,
+      limit,
+    });
+    return ctx.json(data);
+  });
+
+  // GET /api/inventory/mutations/card - Detail Kartu Stok Kronologis per Item
+  router.get("/api/inventory/mutations/card", async (ctx) => {
+    const kodeitem = ctx.query.kodeitem;
+    if (!kodeitem) {
+      return ctx.error("Parameter 'kodeitem' wajib diisi", 400);
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const startDate = ctx.query.startDate || `${today.slice(0, 7)}-01`;
+    const endDate = ctx.query.endDate || today;
+    const office = ctx.query.office || "UTM";
+
+    try {
+      const card = await InventoryMutationService.getItemStockCard({
+        kodeitem,
+        startDate,
+        endDate,
+        office,
+      });
+      return ctx.json(card);
+    } catch (err: any) {
+      return ctx.error(err.message || "Gagal mengambil data kartu stok", 404);
+    }
   });
 }

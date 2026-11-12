@@ -213,7 +213,7 @@ export default function GeneralLedgerPage() {
           <div className="text-xl font-black text-zinc-300 font-mono mt-0.5">
             {formatRupiah(ledgerData?.saldoAwal || 0)}
           </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Per {startDate}</div>
+          <div className="text-[10px] text-zinc-500 mt-1">Per {formatDate(startDate)}</div>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
@@ -245,7 +245,7 @@ export default function GeneralLedgerPage() {
           <div className="text-xl font-black text-white font-mono mt-0.5">
             {formatRupiah(ledgerData?.saldoAkhir || 0)}
           </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Per {endDate}</div>
+          <div className="text-[10px] text-zinc-500 mt-1">Per {formatDate(endDate)}</div>
         </div>
       </div>
 

@@ -12,16 +12,19 @@ export function registerSystemRoutes(router: ApiRouter) {
   router.get("/api/system/health", async (ctx) => {
     const start = performance.now();
     const result = await db.execute(sql`
-      SELECT NOW() as server_time, version() as pg_version, current_database() as database_name;
+      SELECT NOW() as server_time, version() as pg_version, current_database() as database_name, inet_server_port() as db_port;
     `);
     const tables = await db.execute(sql`
       SELECT count(*)::int as total_tables FROM information_schema.tables WHERE table_schema = 'public';
     `);
     const latencyMs = Number((performance.now() - start).toFixed(2));
+    const config = await OrderPromotionService.getSystemConfigurations().catch(() => null);
 
     return ctx.json({
       status: "ONLINE",
       database: (result[0] as any).database_name,
+      port: (result[0] as any).db_port || 5444,
+      companyName: config?.company?.name || "CV. BARUNA ARTHA LESTARI",
       pgVersion: (result[0] as any).pg_version,
       serverTime: (result[0] as any).server_time,
       totalTables: (tables[0] as any).total_tables,
@@ -220,6 +223,7 @@ export function registerSystemRoutes(router: ApiRouter) {
         pg_size_pretty(pg_database_size(current_database())) as dbsize,
         pg_database_size(current_database())::bigint as dbsize_bytes,
         current_database() as dbname,
+        inet_server_port() as port,
         version() as pgversion;
     `);
 
@@ -252,6 +256,7 @@ export function registerSystemRoutes(router: ApiRouter) {
 
     return ctx.json({
       dbname: dbInfo.dbname,
+      port: dbInfo.port || 5444,
       dbsize: dbInfo.dbsize,
       dbsizeBytes: Number(dbInfo.dbsize_bytes || 0),
       pgversion: dbInfo.pgversion,

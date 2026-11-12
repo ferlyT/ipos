@@ -42,18 +42,45 @@ html.theme-midnight-blue aside nav a.bg-zinc-800 {
 }
 
 html.theme-midnight-blue .bg-slate-950,
-html.theme-midnight-blue .bg-zinc-950 {
+html.theme-midnight-blue .bg-zinc-950,
+html.theme-midnight-blue .bg-zinc-950\/40,
+html.theme-midnight-blue .bg-zinc-950\/50,
+html.theme-midnight-blue .bg-zinc-950\/60,
+html.theme-midnight-blue .bg-zinc-950\/70,
+html.theme-midnight-blue .bg-zinc-950\/80,
+html.theme-midnight-blue .bg-zinc-950\/90,
+html.theme-midnight-blue .bg-zinc-950\/95,
+html.theme-midnight-blue .bg-slate-950\/60,
+html.theme-midnight-blue .bg-slate-950\/70,
+html.theme-midnight-blue .bg-slate-950\/80 {
   background-color: #050914 !important;
 }
 
 html.theme-midnight-blue .bg-slate-900,
-html.theme-midnight-blue .bg-zinc-900 {
+html.theme-midnight-blue .bg-zinc-900,
+html.theme-midnight-blue .bg-zinc-900\/40,
+html.theme-midnight-blue .bg-zinc-900\/50,
+html.theme-midnight-blue .bg-zinc-900\/60,
+html.theme-midnight-blue .bg-zinc-900\/80,
+html.theme-midnight-blue .bg-zinc-900\/90,
+html.theme-midnight-blue .bg-slate-900\/40,
+html.theme-midnight-blue .bg-slate-900\/50,
+html.theme-midnight-blue .bg-slate-900\/60,
+html.theme-midnight-blue .bg-slate-900\/80,
+html.theme-midnight-blue .bg-slate-900\/90 {
   background-color: #0c1630 !important;
 }
 
 html.theme-midnight-blue .bg-zinc-850,
 html.theme-midnight-blue .bg-zinc-800,
-html.theme-midnight-blue .bg-slate-800 {
+html.theme-midnight-blue .bg-slate-800,
+html.theme-midnight-blue .bg-zinc-800\/30,
+html.theme-midnight-blue .bg-zinc-800\/40,
+html.theme-midnight-blue .bg-zinc-800\/50,
+html.theme-midnight-blue .bg-zinc-800\/60,
+html.theme-midnight-blue .bg-zinc-800\/80,
+html.theme-midnight-blue .bg-slate-800\/40,
+html.theme-midnight-blue .bg-slate-800\/80 {
   background-color: #132247 !important;
 }
 
@@ -92,18 +119,45 @@ html.theme-emerald-pos aside nav a.bg-zinc-800 {
 }
 
 html.theme-emerald-pos .bg-slate-950,
-html.theme-emerald-pos .bg-zinc-950 {
+html.theme-emerald-pos .bg-zinc-950,
+html.theme-emerald-pos .bg-zinc-950\/40,
+html.theme-emerald-pos .bg-zinc-950\/50,
+html.theme-emerald-pos .bg-zinc-950\/60,
+html.theme-emerald-pos .bg-zinc-950\/70,
+html.theme-emerald-pos .bg-zinc-950\/80,
+html.theme-emerald-pos .bg-zinc-950\/90,
+html.theme-emerald-pos .bg-zinc-950\/95,
+html.theme-emerald-pos .bg-slate-950\/60,
+html.theme-emerald-pos .bg-slate-950\/70,
+html.theme-emerald-pos .bg-slate-950\/80 {
   background-color: #020d09 !important;
 }
 
 html.theme-emerald-pos .bg-slate-900,
-html.theme-emerald-pos .bg-zinc-900 {
+html.theme-emerald-pos .bg-zinc-900,
+html.theme-emerald-pos .bg-zinc-900\/40,
+html.theme-emerald-pos .bg-zinc-900\/50,
+html.theme-emerald-pos .bg-zinc-900\/60,
+html.theme-emerald-pos .bg-zinc-900\/80,
+html.theme-emerald-pos .bg-zinc-900\/90,
+html.theme-emerald-pos .bg-slate-900\/40,
+html.theme-emerald-pos .bg-slate-900\/50,
+html.theme-emerald-pos .bg-slate-900\/60,
+html.theme-emerald-pos .bg-slate-900\/80,
+html.theme-emerald-pos .bg-slate-900\/90 {
   background-color: #062319 !important;
 }
 
 html.theme-emerald-pos .bg-zinc-850,
 html.theme-emerald-pos .bg-zinc-800,
-html.theme-emerald-pos .bg-slate-800 {
+html.theme-emerald-pos .bg-slate-800,
+html.theme-emerald-pos .bg-zinc-800\/30,
+html.theme-emerald-pos .bg-zinc-800\/40,
+html.theme-emerald-pos .bg-zinc-800\/50,
+html.theme-emerald-pos .bg-zinc-800\/60,
+html.theme-emerald-pos .bg-zinc-800\/80,
+html.theme-emerald-pos .bg-slate-800\/40,
+html.theme-emerald-pos .bg-slate-800\/80 {
   background-color: #0b3929 !important;
 }
 
@@ -159,12 +213,34 @@ html.theme-light-clean aside > div:last-child {
 
 /* Main Cards & Surfaces */
 html.theme-light-clean .bg-slate-950,
-html.theme-light-clean .bg-zinc-950 {
+html.theme-light-clean .bg-zinc-950,
+html.theme-light-clean .bg-zinc-950\/50,
+html.theme-light-clean .bg-zinc-950\/60,
+html.theme-light-clean .bg-zinc-950\/70,
+html.theme-light-clean .bg-zinc-950\/80,
+html.theme-light-clean .bg-zinc-950\/90,
+html.theme-light-clean .bg-zinc-950\/95,
+html.theme-light-clean .bg-slate-950\/50,
+html.theme-light-clean .bg-slate-950\/60,
+html.theme-light-clean .bg-slate-950\/70,
+html.theme-light-clean .bg-slate-950\/80,
+html.theme-light-clean .bg-slate-950\/90,
+html.theme-light-clean .bg-slate-950\/95 {
   background-color: #ffffff !important;
 }
 
 html.theme-light-clean .bg-slate-900,
-html.theme-light-clean .bg-zinc-900 {
+html.theme-light-clean .bg-zinc-900,
+html.theme-light-clean .bg-zinc-900\/40,
+html.theme-light-clean .bg-zinc-900\/50,
+html.theme-light-clean .bg-zinc-900\/60,
+html.theme-light-clean .bg-zinc-900\/80,
+html.theme-light-clean .bg-zinc-900\/90,
+html.theme-light-clean .bg-slate-900\/40,
+html.theme-light-clean .bg-slate-900\/50,
+html.theme-light-clean .bg-slate-900\/60,
+html.theme-light-clean .bg-slate-900\/80,
+html.theme-light-clean .bg-slate-900\/90 {
   background-color: #ffffff !important;
 }
 
@@ -174,28 +250,16 @@ html.theme-light-clean .bg-slate-800 {
   background-color: #f1f5f9 !important;
 }
 
-html.theme-light-clean .bg-zinc-900\/40,
-html.theme-light-clean .bg-zinc-900\/50,
-html.theme-light-clean .bg-zinc-900\/60,
-html.theme-light-clean .bg-zinc-900\/80,
-html.theme-light-clean .bg-slate-900\/40,
-html.theme-light-clean .bg-slate-900\/80 {
-  background-color: #ffffff !important;
-}
-
-html.theme-light-clean .bg-zinc-950\/50,
-html.theme-light-clean .bg-zinc-950\/80,
-html.theme-light-clean .bg-zinc-950\/90,
-html.theme-light-clean .bg-zinc-950\/95,
-html.theme-light-clean .bg-slate-950\/95 {
-  background-color: #ffffff !important;
-}
-
 html.theme-light-clean .bg-zinc-800\/30,
 html.theme-light-clean .bg-zinc-800\/40,
 html.theme-light-clean .bg-zinc-800\/50,
 html.theme-light-clean .bg-zinc-800\/60,
-html.theme-light-clean .bg-zinc-800\/80 {
+html.theme-light-clean .bg-zinc-800\/80,
+html.theme-light-clean .bg-slate-800\/30,
+html.theme-light-clean .bg-slate-800\/40,
+html.theme-light-clean .bg-slate-800\/50,
+html.theme-light-clean .bg-slate-800\/60,
+html.theme-light-clean .bg-slate-800\/80 {
   background-color: #f8fafc !important;
 }
 
@@ -450,7 +514,9 @@ html.theme-light-clean .text-zinc-300 {
 }
 
 html.theme-light-clean .text-slate-400,
-html.theme-light-clean .text-zinc-400 {
+html.theme-light-clean .text-zinc-400,
+html.theme-light-clean .text-slate-500,
+html.theme-light-clean .text-zinc-500 {
   color: #64748b !important;
 }
 
@@ -467,6 +533,161 @@ html.theme-light-clean .promo-total-label {
 
 html.theme-light-clean .promo-total-value {
   color: #059669 !important;
+}
+
+/* ------------------------------------------------------------- */
+/* Audit Forensic Voucher & Modal Custom Theming                */
+/* ------------------------------------------------------------- */
+.audit-voucher-sheet {
+  background-color: #0d111a;
+  border-color: #27272a;
+}
+.audit-voucher-card {
+  background-color: #141a26;
+  border-color: #27272a;
+}
+.audit-voucher-code {
+  background-color: #080c14;
+  border-color: #1e2638;
+}
+.audit-modal-btn-close {
+  background-color: #27272a;
+  color: #f4f4f5;
+  border: 1px solid #3f3f46;
+}
+.audit-modal-btn-close:hover {
+  background-color: #3f3f46;
+  color: #ffffff;
+}
+
+/* ------------------------------------------------------------- */
+/* Audit Diff Badge (Lama -> Baru) Strikethrough Styles          */
+/* ------------------------------------------------------------- */
+.audit-diff-old {
+  background-color: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+  text-decoration-line: line-through;
+  text-decoration-color: #f43f5e;
+}
+.audit-diff-new {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  font-weight: 600;
+}
+
+html.theme-dark-slate .audit-diff-old,
+[data-theme="dark-slate"] .audit-diff-old {
+  background-color: rgba(76, 5, 25, 0.45);
+  color: #fda4af;
+  border-color: rgba(159, 18, 57, 0.6);
+  text-decoration-color: #fb7185;
+}
+html.theme-dark-slate .audit-diff-new,
+[data-theme="dark-slate"] .audit-diff-new {
+  background-color: rgba(6, 78, 59, 0.45);
+  color: #6ee7b7;
+  border-color: rgba(5, 150, 105, 0.6);
+}
+
+html.theme-midnight-blue .audit-diff-old,
+[data-theme="midnight-blue"] .audit-diff-old {
+  background-color: rgba(76, 5, 25, 0.55);
+  color: #fecdd3;
+  border-color: rgba(190, 18, 60, 0.6);
+  text-decoration-color: #fb7185;
+}
+html.theme-midnight-blue .audit-diff-new,
+[data-theme="midnight-blue"] .audit-diff-new {
+  background-color: rgba(6, 78, 59, 0.55);
+  color: #a7f3d0;
+  border-color: rgba(16, 185, 129, 0.6);
+}
+
+html.theme-emerald-pos .audit-diff-old,
+[data-theme="emerald-pos"] .audit-diff-old {
+  background-color: rgba(76, 5, 25, 0.55);
+  color: #fecdd3;
+  border-color: rgba(190, 18, 60, 0.6);
+  text-decoration-color: #fb7185;
+}
+html.theme-emerald-pos .audit-diff-new,
+[data-theme="emerald-pos"] .audit-diff-new {
+  background-color: rgba(6, 78, 59, 0.65);
+  color: #d1fae5;
+  border-color: rgba(52, 211, 153, 0.7);
+}
+
+/* Light Clean Mode Overrides */
+html.theme-light-clean .audit-voucher-sheet {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08) !important;
+}
+html.theme-light-clean .audit-voucher-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+html.theme-light-clean .audit-voucher-code {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+html.theme-light-clean .audit-modal-btn-close {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2) !important;
+}
+html.theme-light-clean .audit-modal-btn-close:hover {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+/* Midnight Blue Mode Overrides */
+html.theme-midnight-blue .audit-voucher-sheet {
+  background-color: #060b18 !important;
+  border-color: #1a2a54 !important;
+}
+html.theme-midnight-blue .audit-voucher-card {
+  background-color: #0c1630 !important;
+  border-color: #1a2a54 !important;
+}
+html.theme-midnight-blue .audit-voucher-code {
+  background-color: #040812 !important;
+  border-color: #142245 !important;
+}
+html.theme-midnight-blue .audit-modal-btn-close {
+  background-color: #132247 !important;
+  color: #f0f6fc !important;
+  border-color: #243b75 !important;
+}
+html.theme-midnight-blue .audit-modal-btn-close:hover {
+  background-color: #1a2f63 !important;
+}
+
+/* Emerald POS Mode Overrides */
+html.theme-emerald-pos .audit-voucher-sheet {
+  background-color: #020d09 !important;
+  border-color: #0e4432 !important;
+}
+html.theme-emerald-pos .audit-voucher-card {
+  background-color: #062319 !important;
+  border-color: #0e4432 !important;
+}
+html.theme-emerald-pos .audit-voucher-code {
+  background-color: #010705 !important;
+  border-color: #0b3929 !important;
+}
+html.theme-emerald-pos .audit-modal-btn-close {
+  background-color: #0b3929 !important;
+  color: #ecfdf5 !important;
+  border-color: #145942 !important;
+}
+html.theme-emerald-pos .audit-modal-btn-close:hover {
+  background-color: #104c37 !important;
 }
 
 body {

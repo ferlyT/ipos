@@ -90,18 +90,27 @@ async function runAuditMigration() {
       }
     }
 
-    // 3. Eksekusi Script Functions & Triggers pada target schema
-    console.log(`  -> Memasang fungsi trigger dan trigger event pada skema [${targetSchema}]...`);
-    const sqlPath = join(import.meta.dir, "db/migrations/20261107_audit_log_triggers.sql");
-    const sqlContent = readFileSync(sqlPath, "utf-8");
+    // 3. Eksekusi Script Functions & Triggers pada target schema (Penjualan & Pembelian)
+    console.log(`  -> Memasang fungsi trigger Penjualan & Pembelian pada skema [${targetSchema}]...`);
+    const sqlPathSalesPurchases = join(import.meta.dir, "db/migrations/20261107_audit_log_triggers.sql");
+    const sqlContentSalesPurchases = readFileSync(sqlPathSalesPurchases, "utf-8");
 
-    // Jalankan dengan search_path skema target
     await client.unsafe(`
       SET search_path = "${targetSchema}", public;
-      ${sqlContent}
+      ${sqlContentSalesPurchases}
     `);
 
-    console.log(`✅ Berhasil memasang trigger pada skema '${targetSchema}'!`);
+    // 4. Eksekusi Script Functions & Triggers Akuntansi, Kas/Bank, Hutang, Piutang, Deposit
+    console.log(`  -> Memasang fungsi trigger Akuntansi & Kas/Bank pada skema [${targetSchema}]...`);
+    const sqlPathAccounting = join(import.meta.dir, "db/migrations/20261110_audit_log_accounting_triggers.sql");
+    const sqlContentAccounting = readFileSync(sqlPathAccounting, "utf-8");
+
+    await client.unsafe(`
+      SET search_path = "${targetSchema}", public;
+      ${sqlContentAccounting}
+    `);
+
+    console.log(`✅ Berhasil memasang seluruh trigger transaksi & akuntansi pada skema '${targetSchema}'!`);
     console.log("================================================================================");
     console.log(`🎉 Migrasi trigger audit log pada skema '${targetSchema}' selesai dengan sukses!`);
     console.log("================================================================================");

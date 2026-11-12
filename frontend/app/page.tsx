@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth.store";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { api } from "@/lib/api-client";
 import {
   Monitor,
   LayoutDashboard,
@@ -21,6 +23,31 @@ export default function Home() {
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const logout = useAuthStore((s) => s.logout);
+
+  const [dbInfo, setDbInfo] = useState<{ database: string; port: number | string }>({
+    database: "",
+    port: 5444,
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    api.system
+      .getHealth()
+      .then((res: any) => {
+        if (!isMounted) return;
+        const data = res?.data || res;
+        if (data?.database) {
+          setDbInfo({
+            database: data.database,
+            port: data.port || 5444,
+          });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col justify-between p-6 md:p-10 font-sans selection:bg-emerald-500 selection:text-white">
@@ -184,7 +211,7 @@ export default function Home() {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1.5">
             <Database className="w-4 h-4 text-emerald-500" />
-            <span>PostgreSQL: <strong>i4_barunatrial (Port 5444)</strong></span>
+            <span suppressHydrationWarning>PostgreSQL: <strong className="text-zinc-300 font-mono">{dbInfo.database || "i4_baruna31okt26"} (Port {dbInfo.port})</strong></span>
           </div>
           <span>•</span>
           <div className="flex items-center space-x-1.5">

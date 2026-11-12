@@ -201,7 +201,7 @@ export default function DatabaseDiagnosticsPage() {
             <div className="text-xl font-black text-white font-mono mt-0.5">
               {stats?.dbsize || "122 MB"}
             </div>
-            <div className="text-[10px] text-zinc-500 font-mono truncate">{stats?.dbname || "i4_barunatrial"}</div>
+            <div className="text-[10px] text-zinc-500 font-mono truncate">{stats?.dbname || "i4_baruna31okt26"}</div>
           </div>
         </div>
 
@@ -240,7 +240,7 @@ export default function DatabaseDiagnosticsPage() {
             <div className="text-xl font-black text-white font-mono mt-0.5">
               {stats?.numbackends || 2} Klien
             </div>
-            <div className="text-[10px] text-zinc-500 font-mono">Port 5444</div>
+            <div className="text-[10px] text-zinc-500 font-mono">Port {stats?.port || 5444}</div>
           </div>
         </div>
       </div>

@@ -292,6 +292,101 @@ export const api = {
     },
     getCard: (itemCode: string, office: string = "UTM") =>
       request<any[]>(`/api/inventory/card?itemCode=${encodeURIComponent(itemCode)}&office=${office}`),
+    getMutationSummary: (params: {
+      startDate: string;
+      endDate: string;
+      office?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    }) => {
+      const q = new URLSearchParams({
+        startDate: params.startDate,
+        endDate: params.endDate,
+        ...(params.office ? { office: params.office } : {}),
+        ...(params.search ? { search: params.search } : {}),
+        ...(params.page ? { page: params.page.toString() } : {}),
+        ...(params.limit ? { limit: params.limit.toString() } : {}),
+      });
+      return request<{
+        items: Array<{
+          kodeitem: string;
+          namaitem: string;
+          satuan: string;
+          rak: string;
+          hargapokok: number;
+          saldoAwal: number;
+          nilaiAwal: number;
+          qtyMasuk: number;
+          nilaiMasuk: number;
+          qtyKeluar: number;
+          nilaiKeluar: number;
+          saldoAkhir: number;
+          nilaiAkhir: number;
+          txCount: number;
+        }>;
+        pagination: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+        summary: {
+          period: { startDate: string; endDate: string };
+          office: string;
+          totalQtyMasuk: number;
+          totalQtyKeluar: number;
+          netMovementQty: number;
+          totalNilaiMasuk: number;
+          totalNilaiKeluar: number;
+        };
+      }>(`/api/inventory/mutations/summary?${q.toString()}`);
+    },
+    getItemStockCard: (params: {
+      kodeitem: string;
+      startDate: string;
+      endDate: string;
+      office?: string;
+    }) => {
+      const q = new URLSearchParams({
+        kodeitem: params.kodeitem,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        ...(params.office ? { office: params.office } : {}),
+      });
+      return request<{
+        item: {
+          kodeitem: string;
+          namaitem: string;
+          satuan: string;
+          rak: string;
+          hargapokok: number;
+          stokSaatIni: number;
+        };
+        period: { startDate: string; endDate: string; office: string };
+        saldoAwal: number;
+        nilaiAwal: number;
+        totalMasuk: number;
+        totalKeluar: number;
+        saldoAkhir: number;
+        nilaiAkhir: number;
+        transactions: Array<{
+          notransaksi: string;
+          tanggal: string;
+          tipe: string;
+          tipeLabel: string;
+          arah: "IN" | "OUT";
+          pihak: string;
+          keterangan: string;
+          masuk: number;
+          keluar: number;
+          saldo: number;
+          harga: number;
+          totalNilai: number;
+          nilaiSaldo: number;
+        }>;
+      }>(`/api/inventory/mutations/card?${q.toString()}`);
+    },
     transferStock: (payload: {
       kantordari: string;
       kantortujuan: string;
@@ -447,6 +542,54 @@ export const api = {
       request<any[]>(
         `/api/sales/receivables/outstanding?office=${office}${customerCode ? `&customerCode=${customerCode}` : ""}`
       ),
+    matchInvoices: (payload: {
+      amount: number;
+      customerQuery?: string;
+      year?: number;
+      tolerance?: number;
+      office?: string;
+    }) =>
+      request<{
+        query: {
+          amount: number;
+          customerQuery: string | null;
+          year: number | null;
+          tolerance: number;
+        };
+        totalUnpaidInvoicesFound: number;
+        scenariosCount: number;
+        scenarios: Array<{
+          type: "SINGLE" | "EXACT_COMBINATION" | "MONTHLY_BATCH" | "NEAR_MATCH";
+          title: string;
+          description: string;
+          invoiceCount: number;
+          totalAmount: number;
+          targetAmount: number;
+          difference: number;
+          invoices: Array<{
+            notransaksi: string;
+            tanggal: string;
+            kodesupel: string;
+            namapelanggan: string;
+            keterangan: string;
+            totalakhir: number;
+            krd_jml_byr: number;
+            krd_jml_pot: number;
+            sisapiutang: number;
+            jatuhtempo: string | null;
+          }>;
+        }>;
+        monthlyOverview: Array<{
+          customer: string;
+          month: string;
+          invoiceCount: number;
+          totalAmount: number;
+          differenceWithTarget: number;
+        }>;
+      }>("/api/sales/receivables/match", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
     payCustomerReceivable: (payload: {
       notransaksi: string;
       kodekantor: string;
@@ -769,5 +912,32 @@ export const api = {
           totalNilaiAkhir: number;
         }>
       >("/api/system/period/history"),
+  },
+  audit: {
+    getLogs: (params?: {
+      modul?: string;
+      action?: string;
+      search?: string;
+      notransaksi?: string;
+      table?: string;
+      user?: string;
+      schema?: string;
+      page?: number;
+      limit?: number;
+    }) => {
+      const q = new URLSearchParams();
+      if (params?.modul && params.modul !== "ALL") q.append("modul", params.modul);
+      if (params?.action && params.action !== "ALL") q.append("action", params.action);
+      if (params?.search) q.append("search", params.search);
+      if (params?.notransaksi) q.append("notransaksi", params.notransaksi);
+      if (params?.table) q.append("table", params.table);
+      if (params?.user) q.append("user", params.user);
+      if (params?.schema) q.append("schema", params.schema);
+      if (params?.page) q.append("page", params.page.toString());
+      if (params?.limit) q.append("limit", params.limit.toString());
+      return request<any>(`/api/audit-logs?${q.toString()}`);
+    },
+    getDetail: (id: number | string) => request<any>(`/api/audit-logs/detail?id=${id}`),
+    getSummary: () => request<any>("/api/audit-logs/summary"),
   },
 };

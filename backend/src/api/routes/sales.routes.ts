@@ -255,6 +255,21 @@ export function registerSalesRoutes(router: ApiRouter) {
     return ctx.json(aging);
   });
 
+  // POST /api/sales/receivables/match - Smart Invoice Matcher (Pencocokan Tagihan Otomatis)
+  router.post("/api/sales/receivables/match", async (ctx) => {
+    if (!ctx.body || typeof ctx.body.amount !== "number" || ctx.body.amount <= 0) {
+      return ctx.error("Parameter 'amount' (nominal angka positif) wajib disertakan dalam payload", 400);
+    }
+    const result = await receivableService.matchInvoicesByAmount({
+      amount: ctx.body.amount,
+      customerQuery: ctx.body.customerQuery,
+      year: ctx.body.year ? Number(ctx.body.year) : undefined,
+      tolerance: ctx.body.tolerance ? Number(ctx.body.tolerance) : 0,
+      office: ctx.body.office || "UTM"
+    });
+    return ctx.json(result);
+  });
+
   // POST /api/sales/receivables/pay - Pelunasan Piutang Pelanggan
   router.post("/api/sales/receivables/pay", async (ctx) => {
     if (!ctx.body) {

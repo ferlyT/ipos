@@ -1,7 +1,7 @@
 import { client } from "./db";
 
-async function runMigration() {
-  console.log("🚀 Menjalankan migrasi WMS untuk iPos 4.0 (PostgreSQL 8.4 Compatible)...");
+export async function runMigration(shouldExit = false) {
+  console.log("🚀 Memeriksa skema WMS untuk iPos 4.0 (PostgreSQL 8.4 Compatible)...");
   try {
     // 1. wms_zones
     const hasZones = await client`SELECT 1 FROM information_schema.tables WHERE table_name = 'wms_zones'`;
@@ -215,11 +215,18 @@ async function runMigration() {
       console.log("✅ Berhasil membuat sampel lokasi Bin rak terstruktur.");
     }
 
-    process.exit(0);
+    if (shouldExit) {
+      process.exit(0);
+    }
   } catch (err) {
-    console.error("❌ Gagal migrasi:", err);
-    process.exit(1);
+    console.error("❌ Gagal migrasi WMS:", err);
+    if (shouldExit) {
+      process.exit(1);
+    }
+    throw err;
   }
 }
 
-runMigration();
+if (import.meta.main) {
+  runMigration(true);
+}

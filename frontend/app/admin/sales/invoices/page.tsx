@@ -21,11 +21,19 @@ import {
   Download,
   CornerDownLeft,
   Plus,
+  Sparkles,
+  SlidersHorizontal,
+  ArrowRight,
+  ExternalLink,
+  Layers,
+  Calendar,
+  CheckCircle,
+  Tag,
 } from "lucide-react";
 import { InvoiceDetailModal } from "@/components/invoice-detail-modal";
 
 export default function SalesInvoicesPage() {
-  const [activeTab, setActiveTab] = useState<"invoices" | "aging">("invoices");
+  const [activeTab, setActiveTab] = useState<"invoices" | "aging" | "matcher">("invoices");
   const [invoiceTypeFilter, setInvoiceTypeFilter] = useState<"ALL" | "JL" | "RJ">("ALL");
   const [invoices, setInvoices] = useState<any[]>([]);
   const [aging, setAging] = useState<any[]>([]);
@@ -36,6 +44,15 @@ export default function SalesInvoicesPage() {
   const [totalItems, setTotalItems] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
   const tableRef = useRef<HTMLDivElement>(null);
+
+  // Smart Invoice Matcher State
+  const [matchAmount, setMatchAmount] = useState<string>("");
+  const [matchCustomer, setMatchCustomer] = useState<string>("");
+  const [matchYear, setMatchYear] = useState<string>("2026");
+  const [matchTolerance, setMatchTolerance] = useState<string>("0");
+  const [matchLoading, setMatchLoading] = useState<boolean>(false);
+  const [matchResult, setMatchResult] = useState<any | null>(null);
+  const [selectedScenarioIdx, setSelectedScenarioIdx] = useState<number>(0);
 
   // Return Modal State
   const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
@@ -86,6 +103,7 @@ export default function SalesInvoicesPage() {
   };
 
   useEffect(() => {
+    if (activeTab === "matcher") return;
     setPage(1);
     loadData(1, pageSize, search, invoiceTypeFilter);
     api.cashBank.getAccounts().then((accs) => {
@@ -97,6 +115,75 @@ export default function SalesInvoicesPage() {
       }
     }).catch(console.error);
   }, [activeTab, invoiceTypeFilter]);
+
+  const handleMatchInvoices = async (
+    customAmount?: number,
+    customCust?: string,
+    customYear?: string,
+    customTol?: number
+  ) => {
+    const rawAmount =
+      customAmount !== undefined
+        ? customAmount
+        : Number(matchAmount.replace(/[^0-9]/g, ""));
+
+    if (!rawAmount || rawAmount <= 0) {
+      toast.error("Masukkan nominal pembayaran valid yang ingin dicocokkan.");
+      return;
+    }
+
+    const custQuery = customCust !== undefined ? customCust : matchCustomer.trim();
+    const yearVal =
+      customYear !== undefined
+        ? customYear === "ALL"
+          ? undefined
+          : Number(customYear)
+        : matchYear === "ALL"
+        ? undefined
+        : Number(matchYear);
+    const tolVal = customTol !== undefined ? customTol : Number(matchTolerance) || 0;
+
+    setMatchLoading(true);
+    try {
+      const data = await api.sales.matchInvoices({
+        amount: rawAmount,
+        customerQuery: custQuery || undefined,
+        year: yearVal,
+        tolerance: tolVal,
+      });
+
+      if (data) {
+        setMatchResult(data);
+        setSelectedScenarioIdx(0);
+        if (data.scenarios && data.scenarios.length > 0) {
+          toast.success(
+            `Ditemukan ${data.scenarios.length} skenario kecocokan tagihan!`
+          );
+        } else {
+          toast("Tidak ditemukan kecocokan faktur untuk nominal tersebut.", {
+            icon: "ℹ️",
+          });
+        }
+      }
+    } catch (err: any) {
+      console.error("Match error:", err);
+      toast.error(err.message || "Terjadi kesalahan saat mencari kecocokan.");
+    } finally {
+      setMatchLoading(false);
+    }
+  };
+
+  const handleApplyPreset = (
+    amount: number,
+    customer: string,
+    year: string = "2026"
+  ) => {
+    setMatchAmount(formatNumber(amount));
+    setMatchCustomer(customer);
+    setMatchYear(year);
+    setMatchTolerance("0");
+    handleMatchInvoices(amount, customer, year, 0);
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,53 +370,110 @@ export default function SalesInvoicesPage() {
           >
             Analisa Aging Piutang
           </button>
+          <button
+            onClick={() => setActiveTab("matcher")}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+              activeTab === "matcher"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Pencocokan Tagihan (Smart Match)</span>
+          </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
-          <div className="p-3 bg-red-950 text-red-400 rounded-xl border border-red-800/60">
-            <DollarSign className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Total Saldo Piutang Aktif
+      {activeTab !== "matcher" ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
+            <div className="p-3 bg-red-950 text-red-400 rounded-xl border border-red-800/60">
+              <DollarSign className="w-5 h-5" />
             </div>
-            <div className="text-xl font-black text-red-400 font-mono mt-0.5">
-              {formatRupiah(totalOutstandingReceivable)}
+            <div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Total Saldo Piutang Aktif
+              </div>
+              <div className="text-xl font-black text-red-400 font-mono mt-0.5">
+                {formatRupiah(totalOutstandingReceivable)}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
-          <div className="p-3 bg-emerald-950 text-emerald-400 rounded-xl border border-emerald-800/60">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Total Transaksi Ditampilkan
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
+            <div className="p-3 bg-emerald-950 text-emerald-400 rounded-xl border border-emerald-800/60">
+              <FileText className="w-5 h-5" />
             </div>
-            <div className="text-xl font-black text-white font-mono mt-0.5">
-              {invoices.length} Faktur
+            <div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Total Transaksi Ditampilkan
+              </div>
+              <div className="text-xl font-black text-white font-mono mt-0.5">
+                {invoices.length} Faktur
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
-          <div className="p-3 bg-amber-950 text-amber-400 rounded-xl border border-amber-800/60">
-            <Clock className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Faktur Belum Lunas
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
+            <div className="p-3 bg-amber-950 text-amber-400 rounded-xl border border-amber-800/60">
+              <Clock className="w-5 h-5" />
             </div>
-            <div className="text-xl font-black text-amber-400 font-mono mt-0.5">
-              {invoices.filter((it) => Number(it.sisapiutang) > 0).length} Faktur
+            <div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Faktur Belum Lunas
+              </div>
+              <div className="text-xl font-black text-amber-400 font-mono mt-0.5">
+                {invoices.filter((it) => Number(it.sisapiutang) > 0).length} Faktur
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
+            <div className="p-3 bg-blue-950 text-blue-400 rounded-xl border border-blue-800/60">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Target Pembayaran
+              </div>
+              <div className="text-xl font-black text-blue-400 font-mono mt-0.5">
+                {matchResult ? formatRupiah(matchResult.query.amount) : (matchAmount ? `Rp ${matchAmount}` : "Rp 0")}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
+            <div className="p-3 bg-purple-950 text-purple-400 rounded-xl border border-purple-800/60">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Faktur Belum Lunas Ditelusuri
+              </div>
+              <div className="text-xl font-black text-white font-mono mt-0.5">
+                {matchResult ? `${matchResult.totalUnpaidInvoicesFound} Faktur` : "Menunggu input"}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center space-x-4">
+            <div className="p-3 bg-emerald-950 text-emerald-400 rounded-xl border border-emerald-800/60">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Skenario Kecocokan
+              </div>
+              <div className="text-xl font-black text-emerald-400 font-mono mt-0.5">
+                {matchResult ? `${matchResult.scenariosCount} Rekomendasi` : "-"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main View Content */}
       {activeTab === "invoices" ? (
@@ -564,7 +708,7 @@ export default function SalesInvoicesPage() {
             disabled={loading}
           />
         </div>
-      ) : (
+      ) : activeTab === "aging" ? (
         /* Tab Aging Schedule */
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
           <div className="p-4 bg-zinc-850 border-b border-zinc-800 flex justify-between items-center text-xs">
@@ -632,6 +776,502 @@ export default function SalesInvoicesPage() {
               </tbody>
             </table>
           </div>
+        </div>
+      ) : (
+        /* Tab Smart Invoice Matcher */
+        <div className="space-y-6">
+          {/* Search & Config Card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800/80 pb-4">
+              <div>
+                <h2 className="text-base font-black text-white flex items-center space-x-2">
+                  <Sparkles className="w-5 h-5 text-emerald-400" />
+                  <span>Pencocokan Tagihan Cerdas (Smart Payment Reconciler)</span>
+                </h2>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Masukkan nominal dana masuk rekening untuk menelusuri faktur tunggal, batch bulanan, atau kombinasi tagihan piutang yang cocok.
+                </p>
+              </div>
+
+              {matchResult && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMatchResult(null);
+                    setMatchAmount("");
+                    setMatchCustomer("");
+                  }}
+                  className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+                >
+                  Reset Pencarian
+                </button>
+              )}
+            </div>
+
+            {/* Quick Presets */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-zinc-500 font-bold flex items-center space-x-1">
+                <Tag className="w-3.5 h-3.5" />
+                <span>Uji Coba Cepat:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset(3481750, "EDY", "2026")}
+                className="px-2.5 py-1 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-emerald-400 border border-zinc-700/60 rounded-lg font-mono text-[11px] transition-all"
+              >
+                Rp 3.481.750 (EDY • 2 Faktur)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset(111796650, "APIN", "2026")}
+                className="px-2.5 py-1 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-emerald-400 border border-zinc-700/60 rounded-lg font-mono text-[11px] transition-all"
+              >
+                Rp 111.796.650 (APIN • Juli 2026)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset(86623400, "APIN", "2026")}
+                className="px-2.5 py-1 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-emerald-400 border border-zinc-700/60 rounded-lg font-mono text-[11px] transition-all"
+              >
+                Rp 86.623.400 (APIN • Juni P1)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset(42250000, "APIN", "2026")}
+                className="px-2.5 py-1 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-emerald-400 border border-zinc-700/60 rounded-lg font-mono text-[11px] transition-all"
+              >
+                Rp 42.250.000 (APIN • Juni P2)
+              </button>
+            </div>
+
+            {/* Input Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleMatchInvoices();
+              }}
+              className="space-y-4 pt-1"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Nominal Input */}
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Nominal Diterima (Rp) <span className="text-emerald-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-xs">
+                      Rp
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={matchAmount}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, "");
+                        setMatchAmount(val ? formatNumber(Number(val)) : "");
+                      }}
+                      placeholder="Contoh: 3.481.750"
+                      className="w-full bg-zinc-950 border border-zinc-700 rounded-xl pl-9 pr-3 py-2 text-white font-mono font-bold text-sm focus:outline-hidden focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Customer Filter */}
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Pelanggan / Armada <span className="text-zinc-500 font-normal">(Opsional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={matchCustomer}
+                    onChange={(e) => setMatchCustomer(e.target.value)}
+                    placeholder="Semua (atau: APIN, EDY, TWINDO)"
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-hidden focus:border-emerald-500 placeholder:text-zinc-600"
+                  />
+                </div>
+
+                {/* Year Filter */}
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Tahun Faktur
+                  </label>
+                  <select
+                    value={matchYear}
+                    onChange={(e) => setMatchYear(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-hidden focus:border-emerald-500"
+                  >
+                    <option value="2026">Tahun 2026</option>
+                    <option value="2025">Tahun 2025</option>
+                    <option value="2024">Tahun 2024</option>
+                    <option value="ALL">Semua Periode</option>
+                  </select>
+                </div>
+
+                {/* Tolerance Filter */}
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Toleransi Selisih
+                  </label>
+                  <select
+                    value={matchTolerance}
+                    onChange={(e) => setMatchTolerance(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-xs focus:outline-hidden focus:border-emerald-500"
+                  >
+                    <option value="0">Tepat Persis (Selisih Rp 0)</option>
+                    <option value="1000">Maks. Selisih Rp 1.000</option>
+                    <option value="10000">Maks. Selisih Rp 10.000</option>
+                    <option value="50000">Maks. Selisih Rp 50.000</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={matchLoading}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-950/50 flex items-center space-x-2 transition-all cursor-pointer"
+                >
+                  {matchLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Menganalisa Faktur & Kombinasi...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Cari Rekonsiliasi Tagihan (Smart Match)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Results Area */}
+          {matchResult && (
+            <div className="space-y-6">
+              {matchResult.scenarios.length === 0 ? (
+                /* Empty Result Card */
+                <div className="bg-zinc-900 border border-amber-900/50 rounded-2xl p-6 text-center space-y-3">
+                  <div className="w-12 h-12 bg-amber-950 text-amber-400 rounded-2xl border border-amber-800/60 flex items-center justify-center mx-auto">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-white">
+                    Tidak Ditemukan Kecocokan Faktur
+                  </h3>
+                  <p className="text-xs text-zinc-400 max-w-lg mx-auto">
+                    Tidak ditemukan faktur tunggal, batch bulanan, atau kombinasi faktur yang sesuai dengan nominal{" "}
+                    <span className="font-mono font-bold text-amber-400">
+                      {formatRupiah(matchResult.query.amount)}
+                    </span>{" "}
+                    pada filter yang dipilih.
+                  </p>
+                  <div className="pt-2 flex flex-wrap justify-center gap-2 text-[11px] text-zinc-500">
+                    <span className="bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800">
+                      💡 Coba kosongkan filter pelanggan untuk mencari ke seluruh customer
+                    </span>
+                    <span className="bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800">
+                      💡 Naikkan toleransi jika dicurigai ada potongan bank/materai
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* Scenarios Display */
+                <div className="space-y-4">
+                  {/* Scenario Cards Selector */}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center space-x-1.5">
+                      <Layers className="w-4 h-4 text-emerald-400" />
+                      <span>Skenario Rekonsiliasi ({matchResult.scenarios.length} Opsi Ditemukan)</span>
+                    </h3>
+                    <span className="text-xs text-zinc-500">
+                      Klik salah satu skenario untuk melihat rincian faktur
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {matchResult.scenarios.map((sc: any, idx: number) => {
+                      const isSelected = selectedScenarioIdx === idx;
+                      const isExact = sc.difference === 0;
+
+                      let badgeColor = "bg-emerald-950 text-emerald-300 border-emerald-800";
+                      let badgeText = "100% Pas Persis";
+
+                      if (sc.type === "MONTHLY_BATCH") {
+                        badgeColor = "bg-sky-950 text-sky-300 border-sky-800";
+                        badgeText = "Batch 1 Bulan Penuh";
+                      } else if (sc.type === "SINGLE_EXACT") {
+                        badgeColor = "bg-emerald-950 text-emerald-300 border-emerald-800";
+                        badgeText = "Faktur Tunggal";
+                      } else if (sc.type === "CONSECUTIVE_FIFO") {
+                        badgeColor = "bg-teal-950 text-teal-300 border-teal-800";
+                        badgeText = "Faktur Berurutan (FIFO)";
+                      } else if (!isExact) {
+                        badgeColor = "bg-amber-950 text-amber-300 border-amber-800";
+                        badgeText = `Selisih ${formatRupiah(sc.difference)}`;
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedScenarioIdx(idx)}
+                          className={`text-left p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
+                            isSelected
+                              ? "bg-zinc-850 border-emerald-500 shadow-md shadow-emerald-950/40 ring-1 ring-emerald-500/50"
+                              : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-850/50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}`}
+                            >
+                              {badgeText}
+                            </span>
+                            <span className="text-[11px] font-bold text-zinc-400">
+                              {sc.invoiceCount} Faktur
+                            </span>
+                          </div>
+
+                          <div className="font-mono text-base font-black text-white">
+                            {formatRupiah(sc.totalAmount)}
+                          </div>
+
+                          <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
+                            {sc.description}
+                          </p>
+
+                          {isExact ? (
+                            <div className="mt-3 flex items-center space-x-1 text-[11px] font-bold text-emerald-400">
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Sesuai 100% dengan target</span>
+                            </div>
+                          ) : (
+                            <div className="mt-3 flex items-center space-x-1 text-[11px] font-bold text-amber-400">
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              <span>Selisih: {formatRupiah(sc.difference)}</span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Scenario Invoice Table */}
+                  {matchResult.scenarios[selectedScenarioIdx] && (
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg space-y-0">
+                      <div className="p-4 bg-zinc-850 border-b border-zinc-800 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                        <div>
+                          <div className="text-xs font-bold text-emerald-400 flex items-center space-x-1.5">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>
+                              Rincian Faktur: Skenario #{selectedScenarioIdx + 1} ({matchResult.scenarios[selectedScenarioIdx].description})
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-zinc-400 mt-0.5">
+                            Total {matchResult.scenarios[selectedScenarioIdx].invoiceCount} faktur • Akumulasi Tagihan:{" "}
+                            <span className="font-mono font-bold text-white">
+                              {formatRupiah(matchResult.scenarios[selectedScenarioIdx].totalAmount)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[11px] text-zinc-400">
+                            Target: <span className="font-mono font-bold text-white">{formatRupiah(matchResult.query.amount)}</span>
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                              matchResult.scenarios[selectedScenarioIdx].difference === 0
+                                ? "bg-emerald-950 text-emerald-300 border-emerald-800"
+                                : "bg-amber-950 text-amber-300 border-amber-800"
+                            }`}
+                          >
+                            Selisih: {formatRupiah(matchResult.scenarios[selectedScenarioIdx].difference)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left">
+                          <thead className="bg-zinc-800 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-700">
+                            <tr>
+                              <th className="py-3 px-4">No. Faktur</th>
+                              <th className="py-3 px-3">Tanggal</th>
+                              <th className="py-3 px-4">Pelanggan</th>
+                              <th className="py-3 px-4">Armada / Keterangan</th>
+                              <th className="py-3 px-4 text-right">Total Tagihan</th>
+                              <th className="py-3 px-4 text-right">Sisa Piutang</th>
+                              <th className="py-3 px-4 text-center">Aksi</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-800/60 font-medium">
+                            {matchResult.scenarios[selectedScenarioIdx].invoices.map(
+                              (inv: any, iIdx: number) => (
+                                <tr key={iIdx} className="hover:bg-zinc-800/40 text-zinc-300">
+                                  <td className="py-3 px-4 font-mono font-bold text-emerald-400">
+                                    {inv.notransaksi}
+                                  </td>
+                                  <td className="py-3 px-3 text-zinc-400 whitespace-nowrap">
+                                    {formatDate(inv.tanggal)}
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <div className="font-bold text-white">
+                                      {inv.namapelanggan || "KONSUMEN UMUM"}
+                                    </div>
+                                    <div className="text-[10px] text-zinc-500 font-mono">
+                                      {inv.kodesupel || "-"}
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-4 text-zinc-300">
+                                    {inv.keterangan || "-"}
+                                  </td>
+                                  <td className="py-3 px-4 text-right font-mono text-zinc-300">
+                                    {formatRupiah(inv.totalakhir)}
+                                  </td>
+                                  <td className="py-3 px-4 text-right font-mono font-bold text-amber-400">
+                                    {formatRupiah(inv.sisapiutang)}
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <div className="flex items-center justify-center space-x-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => setViewingInvoice(inv.notransaksi)}
+                                        className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-md text-[11px] font-bold transition-all flex items-center space-x-1"
+                                        title="Buka rincian faktur"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                        <span>Detail</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => openPayModal(inv)}
+                                        className="px-2 py-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-800/60 text-emerald-300 rounded-md text-[11px] font-bold transition-all"
+                                        title="Catat pelunasan faktur ini"
+                                      >
+                                        Pelunasan
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            )}
+                          </tbody>
+                          <tfoot className="bg-zinc-950/80 font-bold border-t border-zinc-800">
+                            <tr>
+                              <td colSpan={4} className="py-3 px-4 text-right text-zinc-400">
+                                Total Akumulasi {matchResult.scenarios[selectedScenarioIdx].invoiceCount} Faktur:
+                              </td>
+                              <td className="py-3 px-4 text-right font-mono text-white">
+                                {formatRupiah(
+                                  matchResult.scenarios[selectedScenarioIdx].invoices.reduce(
+                                    (sum: number, it: any) => sum + (Number(it.totalakhir) || 0),
+                                    0
+                                  )
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-right font-mono text-emerald-400 text-sm">
+                                {formatRupiah(matchResult.scenarios[selectedScenarioIdx].totalAmount)}
+                              </td>
+                              <td></td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+
+                      {/* Cashier Guidance Alert */}
+                      <div className="p-4 bg-zinc-950 border-t border-zinc-800/80 flex items-start space-x-3 text-xs text-zinc-400">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold text-zinc-200">Panduan Finance / Kasir:</span>{" "}
+                          Faktur-faktur di atas memiliki total tagihan tepat sebesar{" "}
+                          <span className="font-mono font-bold text-emerald-400">
+                            {formatRupiah(matchResult.scenarios[selectedScenarioIdx].totalAmount)}
+                          </span>
+                          . Anda dapat mengklik tombol <span className="text-emerald-300 font-bold">"Pelunasan"</span> pada masing-masing faktur atau mencatat pembayaran via menu Kas/Bank.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Monthly Overview Section */}
+              {matchResult.monthlyOverview && matchResult.monthlyOverview.length > 0 && (
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
+                  <div className="p-4 bg-zinc-850 border-b border-zinc-800 flex justify-between items-center text-xs">
+                    <span className="font-bold text-white flex items-center space-x-1.5">
+                      <Calendar className="w-4 h-4 text-blue-400" />
+                      <span>Rekapitulasi Tagihan Bulanan Pelanggan Terkait</span>
+                    </span>
+                    <span className="text-zinc-500">
+                      Membantu mendeteksi pembayaran tagihan bulanan utuh
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-zinc-800 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-700">
+                        <tr>
+                          <th className="py-3 px-4">Bulan Tagihan</th>
+                          <th className="py-3 px-4">Pelanggan</th>
+                          <th className="py-3 px-4 text-center">Jumlah Faktur</th>
+                          <th className="py-3 px-4 text-right">Total Piutang Bulan</th>
+                          <th className="py-3 px-4 text-right">Selisih vs Target</th>
+                          <th className="py-3 px-4 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-800/60 font-medium font-mono">
+                        {matchResult.monthlyOverview.map((mo: any, mIdx: number) => {
+                          const isMatch = mo.differenceWithTarget === 0;
+                          return (
+                            <tr key={mIdx} className="hover:bg-zinc-800/40 text-zinc-300">
+                              <td className="py-3 px-4 font-bold text-white">
+                                {mo.month}
+                              </td>
+                              <td className="py-3 px-4 font-sans">
+                                <span className="font-bold text-white">{mo.customer}</span>
+                              </td>
+                              <td className="py-3 px-4 text-center font-sans text-zinc-400">
+                                {mo.invoiceCount} Faktur
+                              </td>
+                              <td className="py-3 px-4 text-right text-white font-bold">
+                                {formatRupiah(mo.totalAmount)}
+                              </td>
+                              <td className="py-3 px-4 text-right">
+                                {isMatch ? (
+                                  <span className="text-emerald-400 font-bold">Rp 0 (Pas)</span>
+                                ) : mo.differenceWithTarget > 0 ? (
+                                  <span className="text-amber-400">
+                                    + {formatRupiah(mo.differenceWithTarget)}
+                                  </span>
+                                ) : (
+                                  <span className="text-red-400">
+                                    - {formatRupiah(Math.abs(mo.differenceWithTarget))}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-center font-sans">
+                                {isMatch ? (
+                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                                    Cocok 100%
+                                  </span>
+                                ) : (
+                                  <span className="text-zinc-500 text-[10px]">
+                                    Berbeda
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

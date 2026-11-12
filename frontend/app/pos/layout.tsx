@@ -7,14 +7,33 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "@/stores/auth.store";
 import { useMounted } from "@/hooks/use-mounted";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { api } from "@/lib/api-client";
 import { Store, User, Clock, LayoutDashboard, Monitor, LogOut } from "lucide-react";
 
 export default function PosLayout({ children }: { children: ReactNode }) {
   const [time, setTime] = useState("");
+  const [companyName, setCompanyName] = useState("CV. BARUNA ARTHA LESTARI");
   const router = useRouter();
   const mounted = useMounted();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+
+  useEffect(() => {
+    let isMounted = true;
+    api.system
+      .getHealth()
+      .then((res: any) => {
+        if (!isMounted) return;
+        const data = res?.data || res;
+        if (data?.companyName) {
+          setCompanyName(data.companyName);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -55,8 +74,8 @@ export default function PosLayout({ children }: { children: ReactNode }) {
 
           <div className="flex items-center space-x-1.5 text-xs text-zinc-300">
             <Store className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="font-semibold">CV. BARUNA ARTHA LESTARI</span>
-            <span className="text-[10px] text-zinc-400 font-mono">[Gudang: UTM]</span>
+            <span className="font-semibold" suppressHydrationWarning>{companyName}</span>
+            <span className="text-[10px] text-zinc-400 font-mono">[Gudang: {mounted && user?.kantor ? user.kantor : "UTM"}]</span>
           </div>
         </div>
 

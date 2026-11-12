@@ -1,3 +1,4 @@
+// @ts-ignore
 import ExcelJS from "exceljs";
 
 export interface TaxReportInvoice {
@@ -49,6 +50,7 @@ export async function exportTaxReportToExcel(params: {
   endDate?: string;
   searchFilter?: string;
   nofpFilter?: string;
+  customFilename?: string;
 }) {
   const { invoices, summary, startDate, endDate } = params;
 
@@ -86,9 +88,22 @@ export async function exportTaxReportToExcel(params: {
   const titleRow = sheet.addRow(["LAPORAN PENJUALAN DETAIL"]);
   titleRow.font = { name: "Arial", size: 14, bold: true, color: { argb: "FF000000" } };
 
-  let periodText = "Semua";
+  let periodText = "SEMUA PERIODE";
   if (startDate && endDate) {
-    periodText = `${startDate} s/d ${endDate}`;
+    const sYear = startDate.slice(0, 4);
+    const sMonth = startDate.slice(5, 7);
+    const eYear = endDate.slice(0, 4);
+    const eMonth = endDate.slice(5, 7);
+    const lastDayOfMonth = new Date(Number(sYear), Number(sMonth), 0).getDate();
+    if (sYear === eYear && sMonth === eMonth && startDate.endsWith("-01") && endDate.endsWith(`-${lastDayOfMonth}`)) {
+      const monthNames = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      periodText = `${monthNames[Number(sMonth) - 1].toUpperCase()} ${sYear}`;
+    } else {
+      periodText = `${startDate} s/d ${endDate}`;
+    }
   } else if (startDate) {
     periodText = `Mulai ${startDate}`;
   } else if (endDate) {
@@ -313,10 +328,29 @@ export async function exportTaxReportToExcel(params: {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+
+  // Format penamaan file dengan menambahkan keterangan periode
+  let periodPart = "";
+  if (startDate && endDate) {
+    if (startDate === endDate) {
+      periodPart = `_${startDate}`;
+    } else {
+      periodPart = `_${startDate}_sd_${endDate}`;
+    }
+  } else if (startDate) {
+    periodPart = `_Mulai_${startDate}`;
+  } else if (endDate) {
+    periodPart = `_Sampai_${endDate}`;
+  } else {
+    periodPart = `_Semua_Periode_${dateStr}`;
+  }
+
+  const fileName = params.customFilename || `Laporan_Penjualan_Kena_Pajak${periodPart}.xlsx`;
+
   const downloadUrl = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = downloadUrl;
-  a.download = `Laporan_Penjualan_Detail_${dateStr}.xlsx`;
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

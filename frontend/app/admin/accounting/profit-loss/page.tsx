@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api-client";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, formatDate } from "@/lib/utils";
 import {
   FileSpreadsheet,
   RefreshCw,
@@ -135,7 +135,9 @@ export default function AccountingReportsPage() {
             {activeTab === "pnl" ? "Laporan Laba Rugi Komprehensif" : "Neraca Keuangan (Balance Sheet)"}
           </h3>
           <p className="text-xs text-zinc-400 font-mono">
-            Periode: {startDate} s/d {endDate} (Mata Uang: IDR)
+            {activeTab === "pnl"
+              ? `Periode: ${formatDate(startDate)} s/d ${formatDate(endDate)}`
+              : `Per Tanggal: ${formatDate(endDate)}`} (Mata Uang: IDR)
           </p>
         </div>
 

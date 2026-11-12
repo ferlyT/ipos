@@ -447,4 +447,380 @@ export class ReceivableLoyaltyService {
       saldoPoinAktif: Number(r.saldo_poin_aktif || 0)
     }));
   }
+
+  /**
+   * Helper Subset Sum menggunakan Dynamic Programming (Knapsack DP)
+   */
+  private findExactSubsetDP(items: any[], target: number): any[] | null {
+    if (items.length === 0 || target <= 0) return null;
+
+    const valid = items.filter((it) => Math.round(Number(it.sisapiutang)) <= target);
+    if (valid.length === 0) return null;
+
+    const totalSum = valid.reduce((s, it) => s + Math.round(Number(it.sisapiutang)), 0);
+    if (totalSum < target) return null;
+    if (totalSum === target) return valid;
+
+    function gcd(a: number, b: number): number {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b) {
+        const t = b;
+        b = a % b;
+        a = t;
+      }
+      return a;
+    }
+
+    let scale = target;
+    for (const it of valid) {
+      scale = gcd(scale, Math.round(Number(it.sisapiutang)));
+      if (scale === 1) break;
+    }
+    if (scale <= 0) scale = 1;
+
+    const scaledTarget = Math.round(target / scale);
+    if (scaledTarget > 2_000_000) {
+      return null;
+    }
+
+    const parent = new Int32Array(scaledTarget + 1);
+    parent.fill(-1);
+    parent[0] = -2;
+
+    const reachable: number[] = [0];
+    let found = false;
+
+    for (let idx = 0; idx < valid.length; idx++) {
+      const w = Math.round(Math.round(Number(valid[idx].sisapiutang)) / scale);
+      if (w <= 0 || w > scaledTarget) continue;
+
+      const rLen = reachable.length;
+      for (let j = 0; j < rLen; j++) {
+        const ns = reachable[j] + w;
+        if (ns <= scaledTarget && parent[ns] === -1) {
+          parent[ns] = idx;
+          reachable.push(ns);
+          if (ns === scaledTarget) {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (found) break;
+    }
+
+    if (!found) return null;
+
+    let curr = scaledTarget;
+    const result: any[] = [];
+    while (curr > 0) {
+      const pIdx = parent[curr];
+      result.push(valid[pIdx]);
+      curr -= Math.round(Math.round(Number(valid[pIdx].sisapiutang)) / scale);
+    }
+    return result;
+  }
+
+  /**
+   * 8. SMART INVOICE MATCHER (PENCOCOKAN TAGIHAN OTOMATIS)
+   */
+  async matchInvoicesByAmount(params: {
+    amount: number;
+    customerQuery?: string;
+    year?: number;
+    tolerance?: number;
+    office?: string;
+  }) {
+    const { amount, customerQuery, year, tolerance = 0, office = "UTM" } = params;
+    const target = Math.round(Number(amount));
+
+    let matchedCustCodes: string[] = [];
+    if (customerQuery && customerQuery.trim()) {
+      const q = customerQuery.trim().toLowerCase();
+      const custRows = await this.sql`
+        SELECT kode, nama FROM tbl_supel
+        WHERE tipe = 'PL' AND (
+          LOWER(nama) LIKE ${'%' + q + '%'} OR 
+          LOWER(kode) LIKE ${'%' + q + '%'} OR
+          LOWER(COALESCE(kontak, '')) LIKE ${'%' + q + '%'}
+        )
+      `;
+      matchedCustCodes = custRows.map((c: any) => String(c.kode).trim());
+    }
+
+    // Ambil faktur belum lunas
+    const rawInvoices = await this.sql`
+      SELECT 
+        i.notransaksi,
+        i.tanggal::date as tanggal,
+        i.kodesupel,
+        COALESCE(s.nama, i.kodesupel) as namapelanggan,
+        COALESCE(i.keterangan, '') as keterangan,
+        i.totalakhir::numeric as totalakhir,
+        COALESCE(i.krd_jml_byr, 0)::numeric as krd_jml_byr,
+        COALESCE(i.krd_jml_pot, 0)::numeric as krd_jml_pot,
+        (i.totalakhir - COALESCE(i.krd_jml_byr, 0) - COALESCE(i.krd_jml_pot, 0))::numeric as sisapiutang,
+        i.byr_krd_jt::date as jatuhtempo
+      FROM tbl_ikhd i
+      LEFT JOIN tbl_supel s ON i.kodesupel = s.kode
+      WHERE i.tipe = 'JL'
+        AND i.kodekantor = ${office}
+        AND (i.totalakhir - COALESCE(i.krd_jml_byr, 0) - COALESCE(i.krd_jml_pot, 0)) > 0
+        ${year ? this.sql`AND EXTRACT(YEAR FROM i.tanggal) = ${year}` : this.sql``}
+        ${
+          matchedCustCodes.length > 0
+            ? this.sql`AND (i.kodesupel IN ${this.sql(matchedCustCodes)} OR LOWER(COALESCE(i.keterangan, '')) LIKE ${'%' + customerQuery!.trim().toLowerCase() + '%'})`
+            : customerQuery && customerQuery.trim()
+            ? this.sql`AND (LOWER(COALESCE(s.nama, '')) LIKE ${'%' + customerQuery.trim().toLowerCase() + '%'} OR LOWER(COALESCE(i.keterangan, '')) LIKE ${'%' + customerQuery.trim().toLowerCase() + '%'})`
+            : this.sql``
+        }
+      ORDER BY i.tanggal DESC, i.notransaksi DESC
+    `;
+
+    const invoices = rawInvoices.map((inv: any) => ({
+      notransaksi: String(inv.notransaksi).trim(),
+      tanggal: inv.tanggal ? String(inv.tanggal).slice(0, 10) : "-",
+      kodesupel: String(inv.kodesupel).trim(),
+      namapelanggan: String(inv.namapelanggan).trim(),
+      keterangan: String(inv.keterangan || "").trim(),
+      totalakhir: Number(inv.totalakhir || 0),
+      krd_jml_byr: Number(inv.krd_jml_byr || 0),
+      krd_jml_pot: Number(inv.krd_jml_pot || 0),
+      sisapiutang: Number(inv.sisapiutang || 0),
+      jatuhtempo: inv.jatuhtempo ? String(inv.jatuhtempo).slice(0, 10) : null
+    }));
+
+    const scenarios: any[] = [];
+
+    // 1. Single Invoice Match (Tepat 100%)
+    const singleMatches = invoices.filter((inv) => Math.round(inv.sisapiutang) === target);
+    for (const sm of singleMatches) {
+      scenarios.push({
+        type: "SINGLE",
+        title: `Faktur Tunggal: ${sm.notransaksi}`,
+        description: `Nominal tepat cocok 100% dengan satu faktur penjualan pelanggan ${sm.namapelanggan}`,
+        invoiceCount: 1,
+        totalAmount: sm.sisapiutang,
+        targetAmount: target,
+        difference: 0,
+        invoices: [sm]
+      });
+    }
+
+    // 2. Exact Combination (Subset Sum 2-8 faktur)
+    const candidates = invoices.filter((inv) => inv.sisapiutang <= target);
+    const exactCombos: any[][] = [];
+    const seenComboKeys = new Set<string>();
+    let iterations = 0;
+    const maxIterations = 25000;
+    const startTime = Date.now();
+
+    // Prioritaskan kombinasi kecil (2 s/d 6 faktur)
+    function searchSubset(startIndex: number, currentSum: number, currentList: any[], maxLen: number) {
+      if (currentSum === target) {
+        const comboKey = currentList.map((x) => x.notransaksi).sort().join(",");
+        if (!seenComboKeys.has(comboKey)) {
+          seenComboKeys.add(comboKey);
+          exactCombos.push([...currentList]);
+        }
+        return;
+      }
+      iterations++;
+      if (iterations > maxIterations || (Date.now() - startTime) > 600) {
+        return;
+      }
+      if (currentSum > target || currentList.length >= maxLen || exactCombos.length >= 6) {
+        return;
+      }
+      for (let i = startIndex; i < candidates.length; i++) {
+        const nextVal = Math.round(candidates[i].sisapiutang);
+        if (currentSum + nextVal <= target) {
+          searchSubset(i + 1, currentSum + nextVal, [...currentList, candidates[i]], maxLen);
+          if (exactCombos.length >= 6 || iterations > maxIterations) break;
+        }
+      }
+    }
+
+    for (let len = 2; len <= 5; len++) {
+      searchSubset(0, 0, [], len);
+      if (exactCombos.length >= 5 || iterations > maxIterations) break;
+    }
+
+    for (const combo of exactCombos) {
+      const sumVal = combo.reduce((s, it) => s + it.sisapiutang, 0);
+      const isConsecutive = combo.length > 1 && combo.every((it, idx) => {
+        if (idx === 0) return true;
+        const prevNo = parseInt(combo[idx - 1].notransaksi.split("/")[0], 10);
+        const currNo = parseInt(it.notransaksi.split("/")[0], 10);
+        return !isNaN(prevNo) && !isNaN(currNo) && Math.abs(prevNo - currNo) <= 2;
+      });
+
+      scenarios.push({
+        type: "EXACT_COMBINATION",
+        title: `Kombinasi ${combo.length} Faktur (Tepat 100%) ${isConsecutive ? "• Nomor Berdampingan" : ""}`,
+        description: `Kombinasi ${combo.length} faktur yang bila dijumlahkan menghasilkan nilai pas Rp ${sumVal.toLocaleString('id-ID')}`,
+        invoiceCount: combo.length,
+        totalAmount: sumVal,
+        targetAmount: target,
+        difference: 0,
+        invoices: combo
+      });
+    }
+
+    // 3. Monthly Batch Match (Rekapitulasi per Pelanggan per Bulan Kalender)
+    const custMonthlyGroups: Record<string, { custKode: string; custNama: string; month: string; items: typeof invoices }> = {};
+    for (const inv of invoices) {
+      const m = inv.tanggal.slice(0, 7);
+      const groupKey = `${inv.kodesupel}_${m}`;
+      if (!custMonthlyGroups[groupKey]) {
+        custMonthlyGroups[groupKey] = {
+          custKode: inv.kodesupel,
+          custNama: inv.namapelanggan,
+          month: m,
+          items: []
+        };
+      }
+      custMonthlyGroups[groupKey].items.push(inv);
+    }
+
+    for (const group of Object.values(custMonthlyGroups)) {
+      const mTotal = group.items.reduce((s, it) => s + it.sisapiutang, 0);
+      const diff = Math.round(mTotal - target);
+
+      if (diff === 0) {
+        scenarios.push({
+          type: "MONTHLY_BATCH",
+          title: `Pelunasan 1 Bulan Penuh [${group.custNama}] - Periode ${group.month} (Tepat 100%)`,
+          description: `Total seluruh ${group.items.length} faktur pelanggan ${group.custNama} pada bulan ${group.month} berjumlah pas Rp ${mTotal.toLocaleString('id-ID')}`,
+          invoiceCount: group.items.length,
+          totalAmount: mTotal,
+          targetAmount: target,
+          difference: 0,
+          invoices: group.items
+        });
+      } else {
+        // Cek apakah ada subset faktur dalam bulan ini yang pas dengan target menggunakan DP
+        if (mTotal > target) {
+          const matched = this.findExactSubsetDP(group.items, target);
+          if (matched && matched.length > 0) {
+            const sTotal = matched.reduce((s: number, it: any) => s + Math.round(Number(it.sisapiutang)), 0);
+            const remainingMonthTotal = mTotal - sTotal;
+            scenarios.push({
+              type: "EXACT_COMBINATION",
+              title: `Kombinasi ${matched.length} Faktur Bulan ${group.month} [${group.custNama}] (Tepat 100%)`,
+              description: `Kombinasi ${matched.length} faktur dari periode ${group.month} yang bernilai pas Rp ${sTotal.toLocaleString('id-ID')}. Sisa tagihan bulan ini: Rp ${remainingMonthTotal.toLocaleString('id-ID')}`,
+              invoiceCount: matched.length,
+              totalAmount: sTotal,
+              targetAmount: target,
+              difference: 0,
+              invoices: matched
+            });
+          }
+        }
+
+        if (Math.abs(diff) <= Math.max(tolerance, 50000)) {
+          scenarios.push({
+            type: "MONTHLY_BATCH",
+            title: `Rekap Bulan ${group.month} [${group.custNama}] (Selisih Rp ${Math.abs(diff).toLocaleString('id-ID')})`,
+            description: `Total seluruh ${group.items.length} faktur pelanggan ${group.custNama} bulan ${group.month} adalah Rp ${mTotal.toLocaleString('id-ID')} (${diff > 0 ? 'lebih tinggi' : 'lebih rendah'} Rp ${Math.abs(diff).toLocaleString('id-ID')})`,
+            invoiceCount: group.items.length,
+            totalAmount: mTotal,
+            targetAmount: target,
+            difference: diff,
+            invoices: group.items
+          });
+        }
+      }
+    }
+
+    // 4. Consecutive Block Match (Urutan Faktur Berurutan / FIFO)
+    // Cek apakah ada rentang faktur berurutan dari pelanggan yang sama bernilai pas
+    const byCustList: Record<string, typeof invoices> = {};
+    for (const inv of invoices) {
+      if (!byCustList[inv.kodesupel]) byCustList[inv.kodesupel] = [];
+      byCustList[inv.kodesupel].push(inv);
+    }
+
+    for (const [cKode, cInvs] of Object.entries(byCustList)) {
+      if (cInvs.length > 1) {
+        const sorted = [...cInvs].sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+        for (let i = 0; i < sorted.length; i++) {
+          let runningSum = 0;
+          for (let j = i; j < sorted.length; j++) {
+            runningSum += Math.round(sorted[j].sisapiutang);
+            if (runningSum === target && (j - i + 1) >= 2) {
+              const block = sorted.slice(i, j + 1);
+              const alreadyExists = scenarios.some(
+                (s) => s.invoiceCount === block.length && s.invoices[0]?.notransaksi === block[0]?.notransaksi
+              );
+              if (!alreadyExists) {
+                scenarios.push({
+                  type: "EXACT_COMBINATION",
+                  title: `Urutan ${block.length} Faktur Berurutan [${block[0].namapelanggan}] (Tepat 100%)`,
+                  description: `Rentang faktur berurutan dari tanggal ${block[0].tanggal} s/d ${block[block.length - 1].tanggal} berjumlah tepat Rp ${runningSum.toLocaleString('id-ID')}`,
+                  invoiceCount: block.length,
+                  totalAmount: runningSum,
+                  targetAmount: target,
+                  difference: 0,
+                  invoices: block
+                });
+              }
+              break;
+            } else if (runningSum > target) {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // 4. Near Matches (Toleransi Selisih jika belum ada yang tepat atau dicari khusus)
+    if (scenarios.length === 0 || tolerance > 0) {
+      const effectiveTol = tolerance > 0 ? tolerance : 50000;
+      // Single near
+      for (const inv of invoices) {
+        const diff = Math.round(inv.sisapiutang - target);
+        if (Math.abs(diff) > 0 && Math.abs(diff) <= effectiveTol) {
+          scenarios.push({
+            type: "NEAR_MATCH",
+            title: `Mendekati Faktur: ${inv.notransaksi}`,
+            description: `Faktur nominal Rp ${inv.sisapiutang.toLocaleString('id-ID')} dengan selisih Rp ${Math.abs(diff).toLocaleString('id-ID')}`,
+            invoiceCount: 1,
+            totalAmount: inv.sisapiutang,
+            targetAmount: target,
+            difference: diff,
+            invoices: [inv]
+          });
+        }
+      }
+    }
+
+    // Urutkan skenario: Exact dulu (diff === 0), lalu invoiceCount terkecil
+    scenarios.sort((a, b) => {
+      if (Math.abs(a.difference) !== Math.abs(b.difference)) {
+        return Math.abs(a.difference) - Math.abs(b.difference);
+      }
+      return a.invoiceCount - b.invoiceCount;
+    });
+
+    return {
+      query: {
+        amount: target,
+        customerQuery: customerQuery || null,
+        year: year || null,
+        tolerance
+      },
+      totalUnpaidInvoicesFound: invoices.length,
+      scenariosCount: scenarios.length,
+      scenarios: scenarios.slice(0, 10),
+      monthlyOverview: Object.values(custMonthlyGroups).map((g) => ({
+        customer: g.custNama,
+        month: g.month,
+        invoiceCount: g.items.length,
+        totalAmount: g.items.reduce((s, it) => s + it.sisapiutang, 0),
+        differenceWithTarget: g.items.reduce((s, it) => s + it.sisapiutang, 0) - target
+      }))
+    };
+  }
 }

@@ -25,6 +25,7 @@ export default function WmsLayoutPage() {
   const [selectedOffice, setSelectedOffice] = useState<string>("GD");
   const [visualMap, setVisualMap] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Selected Bin Modal Drawer
   const [selectedBinCode, setSelectedBinCode] = useState<string | null>(null);
@@ -44,11 +45,13 @@ export default function WmsLayoutPage() {
   // Load Visual Map Data
   const loadMap = async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const data = await api.wms.getVisualMap(selectedOffice);
       setVisualMap(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Gagal memuat visual map:", err);
+      setErrorMessage(err?.message || "Gagal memuat visual map denah gudang");
     } finally {
       setLoading(false);
     }
@@ -138,6 +141,22 @@ export default function WmsLayoutPage() {
           </Link>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {errorMessage && (
+        <div className="bg-rose-950/60 border border-rose-800 text-rose-300 p-4 rounded-xl flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
+            <p className="text-sm font-medium">{errorMessage}</p>
+          </div>
+          <button
+            onClick={loadMap}
+            className="text-xs bg-rose-900/60 hover:bg-rose-800 px-3 py-1.5 rounded-lg border border-rose-700 font-medium transition"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
 
       {/* Summary Stat Cards */}
       {visualMap && (

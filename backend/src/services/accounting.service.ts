@@ -72,16 +72,19 @@ export class AccountingService {
     endDate: string,
     userId = `api_${Date.now()}`
   ): Promise<ReportItem[]> {
-    const startYear = `${startDate.substring(0, 4)}-01-01 00:00:00`;
-    const startPeriod = `${startDate} 00:00:00`;
+    const endYear = (endDate || startDate).substring(0, 4);
+    const startYear = `${endYear}-01-01 00:00:00`;
     const endPeriod = `${endDate} 23:59:59`;
 
     // 1. Eksekusi Stored Procedure Neraca
+    // Di iPos 4, neraca dihitung per tanggal akhir (endPeriod).
+    // Parameter saakhir dan pawal harus menggunakan endPeriod agar stored procedure
+    // proseslap_ns mengakumulasi pendapatan dan biaya tahun berjalan ke akun ACC_LABAJALAN (3-3000).
     await db.execute(sql`
       SELECT acc_genrep_neraca(
         ${startYear}::timestamp,
-        ${startPeriod}::timestamp,
-        ${startPeriod}::timestamp,
+        ${endPeriod}::timestamp,
+        ${endPeriod}::timestamp,
         ${endPeriod}::timestamp,
         ${userId},
         'IDR',
